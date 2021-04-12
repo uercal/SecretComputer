@@ -478,7 +478,7 @@ def showConfig():
 
     dialogWindow.show()
 
-
+ 
 def confirmConfig():
     rightNumber = configui.rightNumber.text()
     totalCount = configui.totalCount.text()
