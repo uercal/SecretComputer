@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>748</width>
+    <height>540</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTextBrowser" name="textBrowser">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>721</width>
+      <height>451</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="clearButton">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>470</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清空</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>748</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>基础工具</string>
+    </property>
+    <widget class="QMenu" name="menutxt">
+     <property name="title">
+      <string>txt类</string>
+     </property>
+     <addaction name="actionjiaoji"/>
+     <addaction name="actionchaji"/>
+     <addaction name="actionbingji"/>
+     <addaction name="actioncheck"/>
+     <addaction name="actionBind"/>
+     <addaction name="actiontxtRandom"/>
+     <addaction name="actiontxtRandomGroup"/>
+    </widget>
+    <widget class="QMenu" name="menuexcel">
+     <property name="title">
+      <string>excel类</string>
+     </property>
+     <addaction name="actionmainCheck"/>
+     <addaction name="actionmini"/>
+     <addaction name="actionSource"/>
+     <addaction name="actionAddSource"/>
+     <addaction name="actionExcelSet"/>
+     <addaction name="actionactionTwoside"/>
+    </widget>
+    <addaction name="menutxt"/>
+    <addaction name="menuexcel"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>拓展</string>
+    </property>
+    <addaction name="actionloadingRecent"/>
+    <addaction name="actionexportPast"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="actionconfig"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_3"/>
+   <addaction name="menu_2"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionjiaoji">
+   <property name="text">
+    <string>交集</string>
+   </property>
+  </action>
+  <action name="actionchaji">
+   <property name="text">
+    <string>差集</string>
+   </property>
+  </action>
+  <action name="actionbingji">
+   <property name="text">
+    <string>并集</string>
+   </property>
+  </action>
+  <action name="actionloadingRecent">
+   <property name="text">
+    <string>读取最近十期号码</string>
+   </property>
+  </action>
+  <action name="actionexportPast">
+   <property name="text">
+    <string>导出近3年往次数据</string>
+   </property>
+  </action>
+  <action name="actionconfig">
+   <property name="text">
+    <string>配置信息</string>
+   </property>
+  </action>
+  <action name="actioncheck">
+   <property name="text">
+    <string>多txt求交</string>
+   </property>
+  </action>
+  <action name="actionmainCheck">
+   <property name="text">
+    <string>开始</string>
+   </property>
+  </action>
+  <action name="actionSource">
+   <property name="text">
+    <string>交叉原始数据</string>
+   </property>
+  </action>
+  <action name="actionmini">
+   <property name="text">
+    <string>自定义单区间</string>
+   </property>
+  </action>
+  <action name="actionAddSource">
+   <property name="text">
+    <string>批量累加交叉</string>
+   </property>
+  </action>
+  <action name="actionExcelSet">
+   <property name="text">
+    <string>批量单区间结果集</string>
+   </property>
+  </action>
+  <action name="actionBind">
+   <property name="text">
+    <string>多txt求并</string>
+   </property>
+  </action>
+  <action name="actionactionTwoside">
+   <property name="text">
+    <string>批量双区结果集</string>
+   </property>
+  </action>
+  <action name="actiontxtRandom">
+   <property name="text">
+    <string>随机抽取求交</string>
+   </property>
+  </action>
+  <action name="actiontxtRandomGroup">
+   <property name="text">
+    <string>随机分组求交</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
