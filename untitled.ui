@@ -60,6 +60,7 @@
      <addaction name="actionbingji"/>
      <addaction name="actioncheck"/>
      <addaction name="actionBind"/>
+     <addaction name="actionmutilCha"/>
      <addaction name="actiontxtRandom"/>
      <addaction name="actiontxtRandomGroup"/>
     </widget>
@@ -173,6 +174,16 @@
   <action name="actiontxtRandomGroup">
    <property name="text">
     <string>随机分组求交</string>
+   </property>
+  </action>
+  <action name="actionmutilCha">
+   <property name="text">
+    <string>各txt求目标差</string>
+   </property>
+  </action>
+  <action name="actionmutilIsRight">
+   <property name="text">
+    <string>批量判断落入</string>
    </property>
   </action>
  </widget>

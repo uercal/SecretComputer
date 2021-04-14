@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
-from easygui import fileopenbox, diropenbox
+from easygui import fileopenbox, diropenbox, ccbox
 import os
 import configparser
 import json
@@ -56,7 +56,19 @@ def basicTxtSet(method):
     filePath = diropenbox('结果存放目录')
     if filePath == None:
         return
-    file = open(filePath+'\\'+resultStr+'_'+str(len(resultSet))+'.txt', 'w')
+    # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    if isCheckRight == True:
+        if rightNumber in resultSet:
+            bonusStr = '_命中'
+
+    file = open(filePath+'\\'+resultStr+'_' +
+                str(len(resultSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
     file.close()
@@ -101,7 +113,19 @@ def check():
     if fname == '':
         ui.textBrowser.append('取消')
         return
-    file = open(fname+'总计'+str(len(resultSet))+'.txt', 'w')
+
+     # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    if isCheckRight == True:
+        if rightNumber in resultSet:
+            bonusStr = '_命中'
+
+    file = open(fname+'总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
     file.close()
@@ -138,7 +162,18 @@ def mutilBind():
     if fname == '':
         ui.textBrowser.append('取消')
         return
-    file = open(fname+'总计'+str(len(resultSet))+'.txt', 'w')
+     # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    if isCheckRight == True:
+        if rightNumber in resultSet:
+            bonusStr = '_命中'
+
+    file = open(fname+'总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
     file.close()
@@ -146,6 +181,49 @@ def mutilBind():
     root.mainloop()
     os.startfile(fname+'总计'+str(len(resultSet))+'.txt')
     postData(fname+'总计'+str(len(resultSet))+'.txt')
+
+
+# 多txt求差 目标
+def mutilCha():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('批量目标差集合txt。。。。')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return
+     # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+
+    completedSet = initNumbersSet()
+    index = 1
+    for path in cur:
+        f = open(path, "r")  # 设置文件对象
+        tSet = set(f.read().split(','))
+        resultSet = completedSet - tSet
+        #
+        if isCheckRight == True:
+            if rightNumber in resultSet:
+                bonusStr = '_命中'
+        file = open(filePath+'\\目标差集结果集'+str(index) +
+                    '_'+str(len(resultSet))+bonusStr+'.txt', 'w')
+        index += 1
+        file.write(','.join(list(resultSet)))
+        file.flush()
+        file.close()
+        pass
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('各txt差集计算完成！')
+    os.startfile(filePath)
 
 # 拓展类（爬虫
 
@@ -173,7 +251,18 @@ def exportTxt(filename, dataSet):
     filePath = diropenbox('结果存放目录')
     if filePath == None:
         return
-    file = open(filePath+'\\'+filename+'_'+str(len(dataSet))+'.txt', 'w')
+    # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    if isCheckRight == True:
+        if rightNumber in dataSet:
+            bonusStr = '_命中'
+    file = open(filePath+'\\'+filename+'_' +
+                str(len(dataSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(dataSet)))
     file.flush()
     file.close()
@@ -204,8 +293,8 @@ def chouyang(a, n, group, type):
     r = list()
     if type == 'pick':
         while len(r) < group:
-            b = random.sample(a, n)            
-            bStr = ','.join('%s' %id for id in b)
+            b = random.sample(a, n)
+            bStr = ','.join('%s' % id for id in b)
             ui.textBrowser.append('抽取抽样索引值: '+bStr)
             b.sort()  # 排序
             r.append(b)
@@ -216,8 +305,8 @@ def chouyang(a, n, group, type):
             if len(a) <= n:
                 r.append(a)
                 return r
-            b = random.sample(a, n)            
-            bStr = ','.join('%s' %id for id in b)
+            b = random.sample(a, n)
+            bStr = ','.join('%s' % id for id in b)
             ui.textBrowser.append('分组抽样索引值: '+bStr)
             b.sort()  # 排序
             r.append(b)
@@ -240,7 +329,7 @@ def txtRandomInter(indexList, txtRandomCount, txtRandomGroup, cur, type):
             tSet = set(f.read().split(','))
             bindSet = bindSet | tSet
         bindSetList.append(bindSet)
-    #    
+    #
     resultSet = set()
     for i in range(0, len(bindSetList)):
         if i == 0:
@@ -273,11 +362,22 @@ def txtRandomTimes():
         ui.textBrowser.append('取消')
         return
 
+    # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+
     for i in range(0, txtRandomHandlerCount):
         resultSet = txtRandomInter(
             indexList, txtRandomCount, txtRandomGroup, cur, 'pick')
+        if isCheckRight == True:
+            if rightNumber in resultSet:
+                bonusStr = '_命中'
         file = open(filePath+'\\批量随机排列抽取交集结果'+str(i+1) +
-                    '总计'+str(len(resultSet))+'.txt', 'w')
+                    '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
         file.write(','.join(list(resultSet)))
         file.flush()
         file.close()
@@ -310,11 +410,22 @@ def txtRandomTimesGroup():
         ui.textBrowser.append('取消')
         return
 
+    # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+
     for i in range(0, txtRandomHandlerCount):
         resultSet = txtRandomInter(
             indexList, txtRandomCount, txtRandomGroup, cur, 'group')
+        if isCheckRight == True:
+            if rightNumber in resultSet:
+                bonusStr = '_命中'
         file = open(filePath+'\\随机排列分组交集结果'+str(i+1) +
-                    '总计'+str(len(resultSet))+'.txt', 'w')
+                    '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
         file.write(','.join(list(resultSet)))
         file.flush()
         file.close()
@@ -324,16 +435,16 @@ def txtRandomTimesGroup():
     os.startfile(filePath)
 
 
-def postData(filePath):  
-    try:                        
+def postData(filePath):
+    try:
         config = configparser.ConfigParser()
-        config.read('./url.ini')        
-        url = config['DEFAULT']['URL']        
+        config.read('./url.ini')
+        url = config['DEFAULT']['URL']
         data = {"token": "yogo"}
         files = {'file': open(filePath, 'rb')}
         res = requests.post(url=url, files=files, data=data)
     except:
-        print('------')        
+        print('------')
         return False
     else:
         print('---')
@@ -478,7 +589,7 @@ def showConfig():
 
     dialogWindow.show()
 
- 
+
 def confirmConfig():
     rightNumber = configui.rightNumber.text()
     totalCount = configui.totalCount.text()
@@ -772,6 +883,14 @@ def initNumbers():
         n = "%04d" % i
         numbers[n] = []
     return numbers
+
+
+def initNumbersSet():
+    target = set()
+    for i in range(0, 10000):
+        n = "%04d" % i
+        target.add(n)
+    return target
 
 
 def clearTextBrowser():
@@ -1103,23 +1222,7 @@ if __name__ == '__main__':
     dialogWindow = QDialog()
     configui = config.Ui_config()
     configui.setupUi(dialogWindow)
-    #
-    with open("setting.json", "r") as f:
-        setting = f.read()
-    configuration = json.loads(setting)
-    rightNumber = configuration['rightNumber']
-    totalCount = int(configuration['totalCount'])
-    hundredCount = int(configuration['hundredCount'])
-    fiftyCount = int(configuration['fiftyCount'])
-    handlerCount = int(configuration['handlerCount'])
-    insideCount = int(configuration['insideCount'])
-    isSingle = configuration['isSingle']
-    isRange = configuration['isRange']
-    qianRange = configuration['qianRange']
-    baiRange = configuration['baiRange']
-    shiRange = configuration['shiRange']
-    geRange = configuration['geRange']
-    setArray = configuration['setArray']
+
     # 绑定dialog确认事件
     configui.buttonOk.accepted.connect(confirmConfig)
     configui.addSection.clicked.connect(addSection)
@@ -1131,6 +1234,7 @@ if __name__ == '__main__':
     ui.actionbingji.triggered.connect(bingji)
     ui.actioncheck.triggered.connect(check)
     ui.actionBind.triggered.connect(mutilBind)
+    ui.actionmutilCha.triggered.connect(mutilCha)
     ui.actiontxtRandom.triggered.connect(txtRandomTimes)
     ui.actiontxtRandomGroup.triggered.connect(txtRandomTimesGroup)
     ui.clearButton.clicked.connect(clearTextBrowser)
