@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
-from easygui import fileopenbox, diropenbox, ccbox
+from easygui import fileopenbox, diropenbox, ccbox, enterbox
 import os
 import configparser
 import json
@@ -318,7 +318,7 @@ def chouyang(a, n, group, type):
         return r
 
 
-def txtRandomInter(indexList, txtRandomCount, txtRandomGroup, cur, type):
+def txtRandomInter(indexList, txtRandomCount, txtRandomGroup, cur, type, returnType='intersection'):
     allIndexList = chouyang(indexList, txtRandomCount, txtRandomGroup, type)
     bindSetList = []
     for i in range(0, len(allIndexList)):
@@ -330,15 +330,19 @@ def txtRandomInter(indexList, txtRandomCount, txtRandomGroup, cur, type):
             bindSet = bindSet | tSet
         bindSetList.append(bindSet)
     #
-    resultSet = set()
-    for i in range(0, len(bindSetList)):
-        if i == 0:
-            resultSet = bindSetList[i]
-        else:
-            resultSet = resultSet & bindSetList[i]
-    return resultSet
+    if returnType == 'bind':
+        return bindSetList
+    else:
+        resultSet = set()
+        for i in range(0, len(bindSetList)):
+            if i == 0:
+                resultSet = bindSetList[i]
+            else:
+                resultSet = resultSet & bindSetList[i]
+        return resultSet
 
 
+# 随机类
 def txtRandomTimes():
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -429,6 +433,137 @@ def txtRandomTimesGroup():
         file.write(','.join(list(resultSet)))
         file.flush()
         file.close()
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('计算完成!')
+    os.startfile(filePath)
+
+
+def txtRandomPickBind():
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    txtRandomCount = int(configuration['txtRandomCount'])
+    txtRandomGroup = int(configuration['txtRandomGroup'])
+    txtRandomHandlerCount = int(configuration['txtRandomHandlerCount'])
+    # 读取批量txt
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('读取集合，开始随机抽取，并计算所有并集.......')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    totalCount = len(cur)
+    indexList = list(range(0, totalCount))
+    # handler begin
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        return
+
+    for i in range(0, txtRandomHandlerCount):
+        resultSetList = txtRandomInter(
+            indexList, txtRandomCount, txtRandomGroup, cur, 'pick', 'bind')
+        for j in range(0, len(resultSetList)):
+            resultSet = resultSetList[j]
+            file = open(filePath+'\\随机抽取并集结果'+str(i+1) + '_'+str(j+1) +
+                        '总计'+str(len(resultSet))+'.txt', 'w')
+            file.write(','.join(list(resultSet)))
+            file.flush()
+            file.close()
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('计算完成!')
+    os.startfile(filePath)
+
+
+def txtDiyPickGroupInter():
+    # 读取批量txt
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('读取集合，开始计算.......')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    totalCount = len(cur)
+    #
+    indexList = list(range(0, totalCount))
+    #
+    randomCount = int(enterbox("随机多少数据进行一次交集?", '确认', "0"))
+    handleCount = int(enterbox("重复运算多少次?", '确认', "0"))
+    # handler begin
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        return
+    # 判断命中
+    bonusStr = ''
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    # handler
+    for i in range(0, handleCount):
+        indexesList = random.sample(indexList, randomCount)
+        resultSet = set()
+        for i in range(0, len(indexesList)):
+            index = indexesList[i]
+            f = open(cur[index], "r")
+            tSet = set(f.read().split(','))
+            if len(resultSet) == 0:
+                resultSet = tSet
+            else:
+                resultSet = resultSet.intersection(tSet)
+        if isCheckRight == True:
+            if rightNumber in resultSet:
+                bonusStr = '_命中'
+        file = open(filePath+'\\自定义抽取交集结果'+str(i+1) +
+                    '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
+        file.write(','.join(list(resultSet)))
+        file.flush()
+        file.close()
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('计算完成!')
+    os.startfile(filePath)
+
+
+def txtRandomGroupBind():
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    txtRandomCount = int(configuration['txtRandomCount'])
+    txtRandomGroup = int(configuration['txtRandomGroup'])
+    txtRandomHandlerCount = int(configuration['txtRandomHandlerCount'])
+    # 读取批量txt
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('读取集合，开始随机分组，并计算所有并集.......')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    totalCount = len(cur)
+    indexList = list(range(0, totalCount))
+    # handler begin
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        return
+
+    for i in range(0, txtRandomHandlerCount):
+        resultSetList = txtRandomInter(
+            indexList, txtRandomCount, txtRandomGroup, cur, 'group', 'bind')
+        for j in range(0, len(resultSetList)):
+            resultSet = resultSetList[j]
+            file = open(filePath+'\\随机分组并集结果'+str(i+1) + '_'+str(j+1) +
+                        '总计'+str(len(resultSet))+'.txt', 'w')
+            file.write(','.join(list(resultSet)))
+            file.flush()
+            file.close()
     root.destroy()
     root.mainloop()
     ui.textBrowser.append('计算完成!')
@@ -1235,8 +1370,15 @@ if __name__ == '__main__':
     ui.actioncheck.triggered.connect(check)
     ui.actionBind.triggered.connect(mutilBind)
     ui.actionmutilCha.triggered.connect(mutilCha)
+    # 随机求交
     ui.actiontxtRandom.triggered.connect(txtRandomTimes)
     ui.actiontxtRandomGroup.triggered.connect(txtRandomTimesGroup)
+    # 随机求并
+    ui.actionrandomPickBind.triggered.connect(txtRandomPickBind)
+    ui.actionrandomGroupBind.triggered.connect(txtRandomGroupBind)
+    # 随机抽
+    ui.actiondiyPIckGroupInter.triggered.connect(txtDiyPickGroupInter)
+
     ui.clearButton.clicked.connect(clearTextBrowser)
     # 爬虫类绑定
     ui.actionloadingRecent.triggered.connect(loadRecent)

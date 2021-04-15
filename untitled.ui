@@ -63,6 +63,9 @@
      <addaction name="actionmutilCha"/>
      <addaction name="actiontxtRandom"/>
      <addaction name="actiontxtRandomGroup"/>
+     <addaction name="actionrandomPickBind"/>
+     <addaction name="actionrandomGroupBind"/>
+     <addaction name="actiondiyPIckGroupInter"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -184,6 +187,21 @@
   <action name="actionmutilIsRight">
    <property name="text">
     <string>批量判断落入</string>
+   </property>
+  </action>
+  <action name="actionrandomPickBind">
+   <property name="text">
+    <string>随机抽取求并</string>
+   </property>
+  </action>
+  <action name="actionrandomGroupBind">
+   <property name="text">
+    <string>随机分组求并</string>
+   </property>
+  </action>
+  <action name="actiondiyPIckGroupInter">
+   <property name="text">
+    <string>自定义抽取求交</string>
    </property>
   </action>
  </widget>
