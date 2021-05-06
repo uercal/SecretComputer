@@ -75,6 +75,7 @@
      <addaction name="actionmini"/>
      <addaction name="actionSource"/>
      <addaction name="actionAddSource"/>
+     <addaction name="actionmutilAdd"/>
      <addaction name="actionExcelSet"/>
      <addaction name="actionactionTwoside"/>
     </widget>
@@ -202,6 +203,11 @@
   <action name="actiondiyPIckGroupInter">
    <property name="text">
     <string>自定义抽取求交</string>
+   </property>
+  </action>
+  <action name="actionmutilAdd">
+   <property name="text">
+    <string>批量累加指定数量</string>
    </property>
   </action>
  </widget>

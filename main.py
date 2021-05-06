@@ -64,8 +64,10 @@ def basicTxtSet(method):
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
-        if rightNumber in resultSet:
+        if len({rightNumber} & resultSet) > 0:
             bonusStr = '_命中'
+        else:
+            bonusStr = ''
 
     file = open(filePath+'\\'+resultStr+'_' +
                 str(len(resultSet))+bonusStr+'.txt', 'w')
@@ -122,9 +124,10 @@ def check():
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
-        if rightNumber in resultSet:
+        if len({rightNumber} & resultSet) > 0:
             bonusStr = '_命中'
-
+        else:
+            bonusStr = ''
     file = open(fname+'总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
@@ -170,8 +173,10 @@ def mutilBind():
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
-        if rightNumber in resultSet:
+        if len({rightNumber} & resultSet) > 0:
             bonusStr = '_命中'
+        else:
+            bonusStr = ''
 
     file = open(fname+'总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
@@ -211,8 +216,10 @@ def mutilCha():
         resultSet = completedSet - tSet
         #
         if isCheckRight == True:
-            if rightNumber in resultSet:
+            if len({rightNumber} & resultSet) > 0:
                 bonusStr = '_命中'
+            else:
+                bonusStr = ''
         file = open(filePath+'\\目标差集结果集'+str(index) +
                     '_'+str(len(resultSet))+bonusStr+'.txt', 'w')
         index += 1
@@ -259,8 +266,10 @@ def exportTxt(filename, dataSet):
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
-        if rightNumber in dataSet:
+        if len({rightNumber} & dataSet) > 0:
             bonusStr = '_命中'
+        else:
+            bonusStr = ''
     file = open(filePath+'\\'+filename+'_' +
                 str(len(dataSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(dataSet)))
@@ -378,8 +387,10 @@ def txtRandomTimes():
         resultSet = txtRandomInter(
             indexList, txtRandomCount, txtRandomGroup, cur, 'pick')
         if isCheckRight == True:
-            if rightNumber in resultSet:
+            if len({rightNumber} & resultSet) > 0:
                 bonusStr = '_命中'
+            else:
+                bonusStr = ''
         file = open(filePath+'\\批量随机排列抽取交集结果'+str(i+1) +
                     '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -426,8 +437,10 @@ def txtRandomTimesGroup():
         resultSet = txtRandomInter(
             indexList, txtRandomCount, txtRandomGroup, cur, 'group')
         if isCheckRight == True:
-            if rightNumber in resultSet:
+            if len({rightNumber} & resultSet) > 0:
                 bonusStr = '_命中'
+            else:
+                bonusStr = ''
         file = open(filePath+'\\随机排列分组交集结果'+str(i+1) +
                     '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -483,10 +496,15 @@ def txtDiyPickGroupInter():
     root = Tk()
     root.withdraw()
     ui.textBrowser.append('读取集合，开始计算.......')
-    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
-    if cur == '':
-        ui.textBrowser.append('取消')
-        return
+    curDir = diropenbox('目标目录')
+    cur = []
+    for _root, dirs, files in os.walk(curDir):
+        for file in files:
+            if os.path.splitext(file)[1] == '.txt':
+                cur.append(os.path.join(_root, file))
+    if len(cur) == 0:
+        ui.textBrowser.append('该目录下 不存在txt文件')
+        return False
     totalCount = len(cur)
     #
     indexList = list(range(0, totalCount))
@@ -509,8 +527,8 @@ def txtDiyPickGroupInter():
     for i in range(0, handleCount):
         indexesList = random.sample(indexList, randomCount)
         resultSet = set()
-        for i in range(0, len(indexesList)):
-            index = indexesList[i]
+        for j in range(0, len(indexesList)):
+            index = indexesList[j]
             f = open(cur[index], "r")
             tSet = set(f.read().split(','))
             if len(resultSet) == 0:
@@ -518,9 +536,11 @@ def txtDiyPickGroupInter():
             else:
                 resultSet = resultSet.intersection(tSet)
         if isCheckRight == True:
-            if rightNumber in resultSet:
+            if len({rightNumber} & resultSet) > 0:
                 bonusStr = '_命中'
-        file = open(filePath+'\\自定义抽取交集结果'+str(i+1) +
+            else:
+                bonusStr = ''
+        file = open(filePath+'\\自定义抽取交集结果_'+str(i+1) +
                     '总计'+str(len(resultSet))+bonusStr+'.txt', 'w')
         file.write(','.join(list(resultSet)))
         file.flush()
@@ -1132,6 +1152,50 @@ def addSourceCheck():
     pass
 
 
+# 批量累加指定数量
+def mutilAdd():
+    # with open("setting.json", "r") as f:
+    #     setting = f.read()
+    # configuration = json.loads(setting)
+    ui.textBrowser.append('计算&产生数据中......')
+    #
+    root = Tk()
+    cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        return
+    #
+    eachFileDataCount = int(enterbox("每个文件多少数据?", '确认', "0"))
+    eachFileCount = int(enterbox("随机多少个文件为一组进行累加?", '确认', "0"))
+    totalFileCount = int(enterbox("需要得到多少个累加文件？", '确认', "0"))
+    allFileCount = len(cur)
+    indexList = []
+    for i in range(0, totalFileCount):
+        indexList.append(random.sample(range(0, allFileCount), eachFileCount))
+
+    #
+    index = 1
+    for i in range(0, len(indexList)):
+        item = indexList[i]
+        wsList = []
+        for j in range(0, len(item)):
+            wb = openpyxl.load_workbook(cur[item[j]])
+            sheetsNames = wb.sheetnames
+            wsList.append(wb[sheetsNames[0]])
+        readWbFromIndexAdd(wsList, eachFileDataCount, filePath, index)
+        index += 1
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    #
+    pass
+
+
 def readWbFromIndexSource(ws, indexes):
     columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
     result = []
@@ -1157,6 +1221,7 @@ def readWbFromIndexSource(ws, indexes):
     return result
 
 
+# 交叉累加
 def readWbFromIndexAddSource(ws, _ws, sourceCount, filePath, parentIndex):
     indexes = list(range(1, sourceCount*2 + 1))
     columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
@@ -1215,6 +1280,38 @@ def readWbFromIndexAddSource(ws, _ws, sourceCount, filePath, parentIndex):
         excel.Application.Quit()
         #
         os.remove(fullPath)
+
+
+# 单纯累加
+def readWbFromIndexAdd(wsList, eachFileDataCount, filePath, parentIndex):
+    indexes = list(range(1, eachFileDataCount + 1))
+    columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
+    parts = ('A', 'B', 'C', 'D')
+    #
+    result = []
+    for ws in wsList:
+        #
+        for j in range(0, len(indexes)):
+            dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
+            for item in parts:
+                _column = columnList[item]
+                _rx = indexes[j]+1
+                dataList[item] = (
+                    str(ws.cell(row=_rx, column=_column).value))
+            result.append(dataList)
+        #    
+    fullPath = exportSet(filePath, result, 'leijia',
+                         str(parentIndex))
+    #
+    excel = win32.gencache.EnsureDispatch('Excel.Application')
+    wb = excel.Workbooks.Open(fullPath)
+
+    # FileFormat = 51 is for .xlsx extension
+    wb.SaveAs(fullPath+"x", FileFormat=51)
+    wb.Close()  # FileFormat = 56 is for .xls extension
+    excel.Application.Quit()
+    #
+    os.remove(fullPath)
 
 # 批量excel set 区间处理
 
@@ -1342,13 +1439,32 @@ def exportSet(path, data, bonus='', key=0):
     #
     if bonus == '':
         fullPath = path+'\\源文件'+'总计'+str(len(data))+'.xls'
-    else:
+    if bonus == 'add':
         fullPath = path+'\\叠加文件'+key+'.xls'
+    if bonus == 'leijia':
+        fullPath = path+'\\指定数量累加文件'+key+'.xls'
     _workbook.save(fullPath)
     return fullPath
 
 
 if __name__ == '__main__':
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber']
+    totalCount = int(configuration['totalCount'])
+    hundredCount = int(configuration['hundredCount'])
+    fiftyCount = int(configuration['fiftyCount'])
+    handlerCount = int(configuration['handlerCount'])
+    insideCount = int(configuration['insideCount'])
+    isSingle = configuration['isSingle']
+    isRange = configuration['isRange']
+    qianRange = configuration['qianRange']
+    baiRange = configuration['baiRange']
+    shiRange = configuration['shiRange']
+    geRange = configuration['geRange']
+    setArray = configuration['setArray']
+    #
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = window.Ui_MainWindow()
@@ -1389,6 +1505,7 @@ if __name__ == '__main__':
     ui.actionmini.triggered.connect(miniCheck)
     ui.actionSource.triggered.connect(sourceCheck)
     ui.actionAddSource.triggered.connect(addSourceCheck)
+    ui.actionmutilAdd.triggered.connect(mutilAdd)
     ui.actionExcelSet.triggered.connect(excelSet)
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
     sys.exit(app.exec_())
