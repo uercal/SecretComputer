@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
-from easygui import fileopenbox, diropenbox, ccbox, enterbox
+from easygui import fileopenbox, diropenbox, ccbox, enterbox, passwordbox
 import os
 import configparser
 import json
@@ -11,6 +11,7 @@ import openpyxl
 #
 from bs4 import BeautifulSoup
 import urllib.request
+from openpyxl.descriptors.base import Alias
 import requests
 #
 import win32com.client as win32
@@ -1074,43 +1075,31 @@ def miniCheck():
 
 
 def sourceCheck():
-    with open("setting.json", "r") as f:
-        setting = f.read()
-    configuration = json.loads(setting)
-    sourceCount = int(configuration['sourceCount'])
-    global onePart
-    onePart = list(configuration['sourceSection'].upper())
-    global twoPart
-    twoPart = ['A', 'B', 'C', 'D']
-    for i in onePart:
-        twoPart.remove(i)
-    file = fileopenbox("文件选择", "读取文件")
-    if file == None:
+    # 选择批量文件
+    root = Tk()
+    cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
         ui.textBrowser.append('取消')
         return
-    #
-    wb = openpyxl.load_workbook(file)
-    sheetsNames = wb.sheetnames
-    ws = wb[sheetsNames[0]]
-    allList = list(range(1, sourceCount + 1))
-    # 集合
-    dataList = readWbFromIndexSource(ws, allList)
-    #
+    sourceCount = int(enterbox("批量的每个文件多少数据?", '确认', "0"))
     filePath = diropenbox('结果存放目录')
     if filePath == None:
         ui.textBrowser.append('取消')
         return
-    fullPath = exportSet(filePath, dataList)
     #
-    excel = win32.gencache.EnsureDispatch('Excel.Application')
-    wb = excel.Workbooks.Open(fullPath)
-
-    # FileFormat = 51 is for .xlsx extension
-    wb.SaveAs(fullPath+"x", FileFormat=51)
-    wb.Close()  # FileFormat = 56 is for .xls extension
-    excel.Application.Quit()
+    key = 1
+    for file in cur:
+        wb = openpyxl.load_workbook(file)
+        sheetsNames = wb.sheetnames
+        ws = wb[sheetsNames[0]]
+        allList = list(range(1, sourceCount + 1))
+        # 集合
+        readWbFromIndexSource(ws, allList, filePath, key)
+        key += 1
     #
-    os.remove(fullPath)
+    ui.textBrowser.append('计算完成')
+    root.destroy()
+    root.mainloop()
     os.startfile(filePath)
     pass
 
@@ -1196,29 +1185,52 @@ def mutilAdd():
     pass
 
 
-def readWbFromIndexSource(ws, indexes):
+def readWbFromIndexSource(ws, indexes, filePath, parentIndex):
     columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
-    result = []
-    for i in range(0, len(indexes)):
-        dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
-        rx = indexes[i] + 1
-        for item in onePart:
-            column = columnList[item]
-            dataList[item] = (
-                str(ws.cell(row=rx, column=column).value))
+    parts = [
+        dict(onePart=('A', 'B'), twoPart=('C', 'D')),
+        dict(onePart=('A', 'C'), twoPart=('B', 'D')),
+        dict(onePart=('A', 'D'), twoPart=('B', 'C')),
+    ]
+    #
+    key = 1
+    for part in parts:
+        result = []
+        onePart = part['onePart']
+        twoPart = part['twoPart']
 
-        _dataList = dataList.copy()
+        for i in range(0, len(indexes)):
+            dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
+            rx = indexes[i] + 1
+            for item in onePart:
+                column = columnList[item]
+                dataList[item] = (
+                    str(ws.cell(row=rx, column=column).value))
 
-        for j in range(0, len(indexes)):
-            _rx = indexes[j]+1
-            for item in twoPart:
-                _column = columnList[item]
-                _dataList[item] = (
-                    str(ws.cell(row=_rx, column=_column).value))
-            result.append(_dataList)
             _dataList = dataList.copy()
 
-    return result
+            for j in range(0, len(indexes)):
+                _rx = indexes[j]+1
+                for item in twoPart:
+                    _column = columnList[item]
+                    _dataList[item] = (
+                        str(ws.cell(row=_rx, column=_column).value))
+                result.append(_dataList)
+                _dataList = dataList.copy()
+
+        fullPath = exportSet(filePath, result, 'jiaocha',
+                             str(parentIndex)+str(key))
+        key += 1
+        #
+        excel = win32.gencache.EnsureDispatch('Excel.Application')
+        wb = excel.Workbooks.Open(fullPath)
+
+        # FileFormat = 51 is for .xlsx extension
+        wb.SaveAs(fullPath+"x", FileFormat=51)
+        wb.Close()  # FileFormat = 56 is for .xls extension
+        excel.Application.Quit()
+        #
+        os.remove(fullPath)
 
 
 # 交叉累加
@@ -1299,7 +1311,7 @@ def readWbFromIndexAdd(wsList, eachFileDataCount, filePath, parentIndex):
                 dataList[item] = (
                     str(ws.cell(row=_rx, column=_column).value))
             result.append(dataList)
-        #    
+        #
     fullPath = exportSet(filePath, result, 'leijia',
                          str(parentIndex))
     #
@@ -1414,6 +1426,82 @@ def TwosideExcelSet():
     pass
 
 
+# 原始数据随机组合
+def originPaste():
+    #
+    root = Tk()
+    cur = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    totalCount = int(enterbox("选择文件一共多少数据?", '确认', "0"))
+    dataCount = int(enterbox("多少数据为一个新文件?", '确认', "0"))
+    fileCount = int(enterbox("需要生成多少文件？", '确认', "0"))
+    #
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        root.destroy()
+        return
+        #
+    #
+    ui.textBrowser.append('开始计算....')
+    wb = openpyxl.load_workbook(cur)
+    sheetsNames = wb.sheetnames
+    ws = wb[sheetsNames[0]]
+    indexes = range(1, totalCount+1)
+    aList = []
+    bList = []
+    cList = []
+    dList = []
+    # 获取excel abcd 4列总数据
+    for i in range(0, len(indexes)):
+        rx = indexes[i] + 1
+        w1 = str(ws.cell(row=rx, column=1).value)
+        # 千
+        w2 = str(ws.cell(row=rx, column=2).value)
+        # 百
+        w3 = str(ws.cell(row=rx, column=3).value)
+        # 十
+        w4 = str(ws.cell(row=rx, column=4).value)
+        # 个
+        w5 = str(ws.cell(row=rx, column=5).value)
+        if w2 == "None":
+            break
+        else:
+            aList.append(w2)
+            bList.append(w3)
+            cList.append(w4)
+            dList.append(w5)
+    #
+    for i in range(0, fileCount):
+        #
+        result = []
+        for k in range(0, dataCount):
+            indexList = random.sample(range(0, totalCount), 4)
+            result.append(dict(A=aList[indexList[0]], B=bList[indexList[1]],
+                               C=cList[indexList[2]], D=dList[indexList[3]]))
+        fullPath = exportSet(filePath, result, 'zuhe',
+                             str(i+1))
+        #
+        excel = win32.gencache.EnsureDispatch('Excel.Application')
+        wb = excel.Workbooks.Open(fullPath)
+
+        # FileFormat = 51 is for .xlsx extension
+        wb.SaveAs(fullPath+"x", FileFormat=51)
+        wb.Close()  # FileFormat = 56 is for .xls extension
+        excel.Application.Quit()
+        #
+        os.remove(fullPath)
+
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    #
+    pass
+
+
 def exportSet(path, data, bonus='', key=0):
     _workbook = xlwt.Workbook(encoding='utf-8')
     # 样式
@@ -1440,14 +1528,25 @@ def exportSet(path, data, bonus='', key=0):
     if bonus == '':
         fullPath = path+'\\源文件'+'总计'+str(len(data))+'.xls'
     if bonus == 'add':
-        fullPath = path+'\\叠加文件'+key+'.xls'
+        fullPath = path+'\\叠加文件'+str(key)+'.xls'
     if bonus == 'leijia':
-        fullPath = path+'\\指定数量累加文件'+key+'.xls'
+        fullPath = path+'\\指定数量累加文件'+str(key)+'.xls'
+    if bonus == 'jiaocha':
+        fullPath = path+'\\交叉文件'+str(key)+'.xls'
+    if bonus == 'zuhe':
+        fullPath = path+'\\组合文件'+str(key)+'.xls'
     _workbook.save(fullPath)
     return fullPath
 
 
 if __name__ == '__main__':
+
+    #
+    passWord = passwordbox("请输入启动密码", '确认', "")
+    nowDate = time.strftime("%Y%m%d", time.localtime())
+    if passWord != nowDate+'lin':
+        exit()
+
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
@@ -1508,4 +1607,5 @@ if __name__ == '__main__':
     ui.actionmutilAdd.triggered.connect(mutilAdd)
     ui.actionExcelSet.triggered.connect(excelSet)
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
+    ui.actionoriginPaste.triggered.connect(originPaste)
     sys.exit(app.exec_())
