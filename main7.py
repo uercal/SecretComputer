@@ -22,6 +22,8 @@ from itertools import combinations, permutations
 import window
 #
 import config
+# 
+import helper
 
 # 基础类
 
@@ -207,9 +209,8 @@ def mutilCha():
         setting = f.read()
     configuration = json.loads(setting)
     rightNumber = configuration['rightNumber']
-    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
-
-    completedSet = initNumbersSet()
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))    
+    completedSet = helper.init4NumbersSet()
     index = 1
     for path in cur:
         f = open(path, "r")  # 设置文件对象
@@ -268,9 +269,7 @@ def exportTxt(filename, dataSet):
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
         if len({rightNumber} & dataSet) > 0:
-            bonusStr = '_命中'
-        else:
-            bonusStr = ''
+            bonusStr = '_命中'        
     file = open(filePath+'\\'+filename+'_' +
                 str(len(dataSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(dataSet)))
@@ -972,7 +971,7 @@ def main(sectionArray, file):
 
 # 根据给定索引集 进行websheet读取写入numbers
 def readWbFromIndex(ws, indexes, table_name, set_range):
-    numbers = initNumbers()
+    numbers = helper.init4Numbers()
     for i in range(0, len(indexes)):
         rx = indexes[i] + 1
         w1 = str(ws.cell(row=rx, column=1).value)
@@ -1032,24 +1031,6 @@ def readWbFromIndex(ws, indexes, table_name, set_range):
             pass
     return targetSet
 
-# 初始化0000-9999
-
-
-def initNumbers():
-    # 所有单码集
-    numbers = {}
-    for i in range(0, 10000):
-        n = "%04d" % i
-        numbers[n] = []
-    return numbers
-
-
-def initNumbersSet():
-    target = set()
-    for i in range(0, 10000):
-        n = "%04d" % i
-        target.add(n)
-    return target
 
 
 def clearTextBrowser():
@@ -1331,6 +1312,7 @@ def readWbFromIndexAdd(wsList, eachFileDataCount, filePath, parentIndex):
 # 批量excel set 区间处理
 
 
+# 批量区间
 def excelSet():
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -1610,5 +1592,6 @@ if __name__ == '__main__':
     ui.actionmutilAdd.triggered.connect(mutilAdd)
     ui.actionExcelSet.triggered.connect(excelSet)
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
+    # 原始数据随机组合
     ui.actionoriginPaste.triggered.connect(originPaste)
     sys.exit(app.exec_())
