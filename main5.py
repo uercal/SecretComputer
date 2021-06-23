@@ -984,6 +984,8 @@ def readWbFromIndex(ws, indexes, table_name, set_range):
         w4 = str(ws.cell(row=rx, column=4).value)
         # 个
         w5 = str(ws.cell(row=rx, column=5).value)
+        # 特殊
+        w6 = str(ws.cell(row=rx, column=6).value)
         if w2 == "None":
             break
         #
@@ -992,30 +994,34 @@ def readWbFromIndex(ws, indexes, table_name, set_range):
         _shiRange = list(map(int, shiRange))
         _geRange = list(map(int, geRange))
         if isRange == 1:
-            for i in range(0, 6):
+            for i in range(0, 7):
                 if _qianRange.count(int(w2[i])) <= 0:
                     continue
-                for j in range(0, 6):
+                for j in range(0, 7):
                     if _baiRange.count(int(w3[j])) <= 0:
                         continue
-                    for m in range(0, 6):
+                    for m in range(0, 7):
                         if _shiRange.count(int(w4[m])) <= 0:
                             continue
-                        for n in range(0, 6):
+                        for n in range(0, 7):
                             if _geRange.count(int(w5[n])) <= 0:
                                 continue
-                            numbers[w2[i] + w3[j] + w4[m] + w5[n]].append(w1)
+                            numbers[w2[i] + w3[j] + w4[m] +
+                                    w5[n]].append(w1)
             pass
         else:
-            for i in range(0, 6):
-                for j in range(0, 6):
-                    for m in range(0, 6):
-                        for n in range(0, 6):
-                            numbers[w2[i] + w3[j] + w4[m] + w5[n]].append(w1)
+            for i in range(0, 7):
+                for j in range(0, 7):
+                    for m in range(0, 7):
+                        for n in range(0, 7):
+                            for k in range(0,7):
+                                numbers[w2[i] + w3[j] +
+                                        w4[m] + w5[n] + w6[k]
+                                        ].append(w1)
             pass
     #
-    for i in range(0, 10000):
-        n = "%04d" % i
+    for i in range(0, 100000):
+        n = "%05d" % i
         numbers[n].sort()
     #
     numbers = numbers.items()
@@ -1035,16 +1041,16 @@ def readWbFromIndex(ws, indexes, table_name, set_range):
 def initNumbers():
     # 所有单码集
     numbers = {}
-    for i in range(0, 10000):
-        n = "%04d" % i
+    for i in range(0, 100000):
+        n = "%05d" % i
         numbers[n] = []
     return numbers
 
 
 def initNumbersSet():
     target = set()
-    for i in range(0, 10000):
-        n = "%04d" % i
+    for i in range(0, 100000):
+        n = "%05d" % i
         target.add(n)
     return target
 
@@ -1454,6 +1460,7 @@ def originPaste():
     bList = []
     cList = []
     dList = []
+    eList = []
     # 获取excel abcd 4列总数据
     for i in range(0, len(indexes)):
         rx = indexes[i] + 1
@@ -1466,6 +1473,8 @@ def originPaste():
         w4 = str(ws.cell(row=rx, column=4).value)
         # 个
         w5 = str(ws.cell(row=rx, column=5).value)
+        # bonus
+        w6 = str(ws.cell(row=rx, column=6).value)
         if w2 == "None":
             break
         else:
@@ -1473,14 +1482,16 @@ def originPaste():
             bList.append(w3)
             cList.append(w4)
             dList.append(w5)
+            eList.append(w6)
     #
     for i in range(0, fileCount):
         #
         result = []
         for k in range(0, dataCount):
-            indexList = random.sample(range(0, totalCount), 4)
+            indexList = random.sample(range(0, totalCount), 5)
             result.append(dict(A=aList[indexList[0]], B=bList[indexList[1]],
-                               C=cList[indexList[2]], D=dList[indexList[3]]))
+                               C=cList[indexList[2]], D=dList[indexList[3]],
+                               E=eList[indexList[4]]))
         fullPath = exportSet(filePath, result, 'zuhe',
                              str(i+1))
         #
@@ -1502,80 +1513,6 @@ def originPaste():
     pass
 
 
-# 统计各位置
-def staticsPosition():
-    ui.textBrowser.append('计算数据中......')
-    #
-    path = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
-    if path == '':
-        ui.textBrowser.append('取消')
-        return
-    excelCount = int(enterbox("选择文件的数据量", '确认', "0"))
-    #
-    wb = openpyxl.load_workbook(path)
-    sheetsNames = wb.sheetnames
-    ws = wb[sheetsNames[0]]
-    indexes = range(1, excelCount+1)
-
-    aList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    bList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    cList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    dList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-    for i in range(0, len(indexes)):
-        rx = indexes[i] + 1
-        w1 = str(ws.cell(row=rx, column=1).value)
-        # 千
-        w2 = str(ws.cell(row=rx, column=2).value)
-        # 百
-        w3 = str(ws.cell(row=rx, column=3).value)
-        # 十
-        w4 = str(ws.cell(row=rx, column=4).value)
-        # 个
-        w5 = str(ws.cell(row=rx, column=5).value)
-        if w2 == "None":
-            break
-        #
-        for i in range(0, 6):
-            aList[int(w2[i])] += 1
-            pass
-        for j in range(0, 6):
-            bList[int(w3[j])] += 1
-            pass
-        for m in range(0, 6):
-            cList[int(w4[m])] += 1
-            pass
-        for n in range(0, 6):
-            dList[int(w5[n])] += 1
-            pass
-        pass
-
-    strList = []
-    for i in range(0, 10):
-        strList.append('数字 '+str(i)+' 出现次数')
-
-    aSet = dict(zip(strList, aList))
-    bSet = dict(zip(strList, bList))
-    cSet = dict(zip(strList, cList))
-    dSet = dict(zip(strList, dList))
-    #
-    aRes = sorted(aSet.items(), key=lambda item: item[1], reverse=True)
-    bRes = sorted(bSet.items(), key=lambda item: item[1], reverse=True)
-    cRes = sorted(cSet.items(), key=lambda item: item[1], reverse=True)
-    dRes = sorted(dSet.items(), key=lambda item: item[1], reverse=True)
-
-    res = [aRes, bRes, cRes, dRes]
-
-    for i in range(0, 4):
-        ui.textBrowser.append('第'+str(i+1)+'位置结果：')
-        ui.textBrowser.append('----')
-        for j in range(0, len(res[i])):
-            ui.textBrowser.append(aRes[j][0]+':'+str(aRes[j][1]))
-        ui.textBrowser.append('\n')
-
-    pass
-
-
 def exportSet(path, data, bonus='', key=0):
     _workbook = xlwt.Workbook(encoding='utf-8')
     # 样式
@@ -1593,11 +1530,12 @@ def exportSet(path, data, bonus='', key=0):
     sheet.write(0, 2, '数据2', style)
     sheet.write(0, 3, '数据3', style)
     sheet.write(0, 4, '数据4', style)
+    sheet.write(0, 5, '数据5', style)
     for row in range(0, len(data)):
-        for index in range(0, 4):
+        for index in range(0, 5):
             sheet.write(row+1, 0, 'A'+str(row+1), style)
             sheet.write(row+1, index+1, int(data[row]
-                                            [['A', 'B', 'C', 'D'][index]]), style)
+                                            [['A', 'B', 'C', 'D','E'][index]]), style)
     #
     if bonus == '':
         fullPath = path+'\\源文件'+'总计'+str(len(data))+'.xls'
@@ -1618,7 +1556,7 @@ if __name__ == '__main__':
     #
     passWord = passwordbox("请输入启动密码", '确认', "")
     nowDate = time.strftime("%Y%m%d", time.localtime())
-    if passWord != nowDate+'lin' and passWord != 'uercal':
+    if passWord != nowDate+'lin':
         exit()
 
     with open("setting.json", "r") as f:
@@ -1682,5 +1620,4 @@ if __name__ == '__main__':
     ui.actionExcelSet.triggered.connect(excelSet)
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
     ui.actionoriginPaste.triggered.connect(originPaste)
-    ui.actionStaticsPosition.triggered.connect(staticsPosition)
     sys.exit(app.exec_())

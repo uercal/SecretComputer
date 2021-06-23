@@ -61,11 +61,7 @@
      <addaction name="actioncheck"/>
      <addaction name="actionBind"/>
      <addaction name="actionmutilCha"/>
-     <addaction name="actiontxtRandom"/>
-     <addaction name="actiontxtRandomGroup"/>
-     <addaction name="actionrandomPickBind"/>
-     <addaction name="actionrandomGroupBind"/>
-     <addaction name="actiondiyPIckGroupInter"/>
+     <addaction name="actionreverseResult"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -79,8 +75,21 @@
      <addaction name="actionExcelSet"/>
      <addaction name="actionactionTwoside"/>
      <addaction name="actionoriginPaste"/>
+     <addaction name="actionStaticsPosition"/>
+    </widget>
+    <widget class="QMenu" name="menu_4">
+     <property name="title">
+      <string>txt随机类</string>
+     </property>
+     <addaction name="actiontxtRandom"/>
+     <addaction name="actiontxtRandomGroup"/>
+     <addaction name="actionrandomPickBind"/>
+     <addaction name="actionrandomGroupBind"/>
+     <addaction name="actiondiyPIckGroupInter"/>
+     <addaction name="separator"/>
     </widget>
     <addaction name="menutxt"/>
+    <addaction name="menu_4"/>
     <addaction name="menuexcel"/>
    </widget>
    <widget class="QMenu" name="menu_2">
@@ -138,7 +147,7 @@
   </action>
   <action name="actionmainCheck">
    <property name="text">
-    <string>开始</string>
+    <string>开始测算概率</string>
    </property>
   </action>
   <action name="actionSource">
@@ -214,6 +223,16 @@
   <action name="actionoriginPaste">
    <property name="text">
     <string>原始数据随机组合</string>
+   </property>
+  </action>
+  <action name="actionStaticsPosition">
+   <property name="text">
+    <string>统计各位置数字</string>
+   </property>
+  </action>
+  <action name="actionreverseResult">
+   <property name="text">
+    <string>逆算生成</string>
    </property>
   </action>
  </widget>

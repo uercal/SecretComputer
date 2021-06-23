@@ -1,4 +1,6 @@
 import sys
+from tkinter.constants import FALSE
+from typing import ItemsView
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
 from easygui import fileopenbox, diropenbox, ccbox, enterbox, passwordbox
@@ -22,6 +24,9 @@ from itertools import combinations, permutations
 import window
 #
 import config
+#
+import helper
+import excel5Helper as excelHelper
 
 # 基础类
 
@@ -135,7 +140,7 @@ def check():
     file.close()
     root.destroy()
     root.mainloop()
-    os.startfile(fname+'总计'+str(len(resultSet))+'.txt')
+    os.startfile(fname+'总计'+str(len(resultSet))+bonusStr+'.txt')
     ui.textBrowser.append('运算结果 : 数量：'+str(len(resultSet)))
     ui.textBrowser.append(
         '================================================')
@@ -185,7 +190,7 @@ def mutilBind():
     file.close()
     root.destroy()
     root.mainloop()
-    os.startfile(fname+'总计'+str(len(resultSet))+'.txt')
+    os.startfile(fname+'总计'+str(len(resultSet))+bonusStr+'.txt')
     postData(fname+'总计'+str(len(resultSet))+'.txt')
 
 
@@ -208,8 +213,7 @@ def mutilCha():
     configuration = json.loads(setting)
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
-
-    completedSet = initNumbersSet()
+    completedSet = helper.init5NumbersSet()
     index = 1
     for path in cur:
         f = open(path, "r")  # 设置文件对象
@@ -232,6 +236,56 @@ def mutilCha():
     root.mainloop()
     ui.textBrowser.append('各txt差集计算完成！')
     os.startfile(filePath)
+
+
+# txt 逆算
+def reverseCheck():
+    root = Tk()
+    root.withdraw()
+    aPosition = {
+        '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0
+    }
+    bPosition = {
+        '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0
+    }
+    cPosition = {
+        '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0
+    }
+    dPosition = {
+        '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0
+    }
+    ePosition = {
+        '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0
+    }
+    position = [
+        aPosition, bPosition, cPosition, dPosition, ePosition
+    ]
+    target = filedialog.askopenfilename(
+        filetypes=[('text files', '.txt')], title="选择第一个数据")
+    if target == '':
+        ui.textBrowser.append('取消')
+        return False
+    targetList = open(target, "r").read().split(',')
+    for i in range(0, len(targetList)):
+        itemStr = targetList[i]
+        for j in range(0, len(itemStr)):
+            position[j][str(itemStr[j])] += 1
+
+    for i in range(0, len(position)):
+        res = sorted(position[i].items(),
+                     key=lambda item: item[1], reverse=True)
+        ui.textBrowser.append('第'+str(i+1)+'位置结果：')
+        recommon = ''
+        for j in range(0, len(res)):
+            uiLabel = '数字 '+res[j][0]+' 次数:'
+            ui.textBrowser.append(uiLabel+str(res[j][1]))
+            #
+            recommon += res[j][0]
+        ui.textBrowser.append('6位数推荐结果：'+recommon[0:6])
+        ui.textBrowser.append('7位数推荐结果：'+recommon[0:7])
+        ui.textBrowser.append('========== 分割线 ============')  
+    pass
+
 
 # 拓展类（爬虫
 
@@ -269,8 +323,6 @@ def exportTxt(filename, dataSet):
     if isCheckRight == True:
         if len({rightNumber} & dataSet) > 0:
             bonusStr = '_命中'
-        else:
-            bonusStr = ''
     file = open(filePath+'\\'+filename+'_' +
                 str(len(dataSet))+bonusStr+'.txt', 'w')
     file.write(','.join(list(dataSet)))
@@ -695,10 +747,6 @@ def showConfig():
     configui.tableWidget.item(0, 3).setText(
         configuration['geRange'] if 'geRange' in configuration else '')
     #
-    configui.miniSection.setText(
-        configuration['miniSection'] if 'miniSection' in configuration else '')
-    configui.miniCount.setText(
-        configuration['miniCount'] if 'miniCount' in configuration else '')
     configui.sourceSection.setText(
         configuration['sourceSection'] if 'sourceSection' in configuration else '')
     configui.sourceCount.setText(
@@ -760,8 +808,6 @@ def confirmConfig():
     shiRange = configui.tableWidget.item(0, 2).text()
     geRange = configui.tableWidget.item(0, 3).text()
     sourceSection = configui.sourceSection.text()
-    miniSection = configui.miniSection.text()
-    miniCount = configui.miniCount.text()
     sourceCount = configui.sourceCount.text()
     excelSection = configui.excelSection.text()
     excelCount = configui.excelCount.text()
@@ -785,7 +831,7 @@ def confirmConfig():
     configuration = dict(rightNumber=rightNumber, totalCount=totalCount, hundredCount=hundredCount, fiftyCount=fiftyCount,
                          insideCount=insideCount, handlerCount=handlerCount, isSingle=isSingle, isRange=isRange,
                          qianRange=qianRange, baiRange=baiRange, shiRange=shiRange, geRange=geRange, setArray=setArray,
-                         miniSection=miniSection, miniCount=miniCount, sourceSection=sourceSection, sourceCount=sourceCount,
+                         sourceSection=sourceSection, sourceCount=sourceCount,
                          excelSection=excelSection, excelCount=excelCount, leftSection=leftSection, rightSection=rightSection,
                          txtRandomCount=txtRandomCount, txtRandomGroup=txtRandomGroup, txtRandomHandlerCount=txtRandomHandlerCount)
     jsonObj = json.dumps(configuration)
@@ -943,7 +989,8 @@ def main(sectionArray, file):
     allList = list(range(1, totalCount + 1))
     random.shuffle(allList)
     # 所有号码 集合
-    numbers_set = readWbFromIndex(ws, allList, "numbers", memberSection)
+    numbers_set = excelHelper.readWbFromIndex(
+        ws, allList, memberSection)
     if isSingle == 1:
         return numbers_set
     #
@@ -952,14 +999,14 @@ def main(sectionArray, file):
         hundredSets = []
         for i in range(0, int(hundredCount)):
             indexes = random.sample(range(1, totalCount + 1), 100)
-            hundredSets.append(readWbFromIndex(
-                ws, indexes, "100part"+str(i), hundredSection))
+            hundredSets.append(excelHelper.readWbFromIndex(
+                ws, indexes, hundredSection))
     ui.textBrowser.append("进行数据随机抽取"+str(fiftyCount)+"次50")
     fiftySets = []
     for i in range(0, int(fiftyCount)):
         indexes = random.sample(range(1, totalCount + 1), 50)
-        fiftySets.append(readWbFromIndex(
-            ws, indexes, "50part"+str(i), fiftySection))
+        fiftySets.append(excelHelper.readWbFromIndex(
+            ws, indexes, fiftySection))
     # intersection
     if totalCount > 100:
         for item in hundredSets:
@@ -970,110 +1017,11 @@ def main(sectionArray, file):
     return numbers_set
 
 
-# 根据给定索引集 进行websheet读取写入numbers
-def readWbFromIndex(ws, indexes, table_name, set_range):
-    numbers = initNumbers()
-    for i in range(0, len(indexes)):
-        rx = indexes[i] + 1
-        w1 = str(ws.cell(row=rx, column=1).value)
-        # 千
-        w2 = str(ws.cell(row=rx, column=2).value)
-        # 百
-        w3 = str(ws.cell(row=rx, column=3).value)
-        # 十
-        w4 = str(ws.cell(row=rx, column=4).value)
-        # 个
-        w5 = str(ws.cell(row=rx, column=5).value)
-        if w2 == "None":
-            break
-        #
-        _qianRange = list(map(int, qianRange))
-        _baiRange = list(map(int, baiRange))
-        _shiRange = list(map(int, shiRange))
-        _geRange = list(map(int, geRange))
-        if isRange == 1:
-            for i in range(0, 6):
-                if _qianRange.count(int(w2[i])) <= 0:
-                    continue
-                for j in range(0, 6):
-                    if _baiRange.count(int(w3[j])) <= 0:
-                        continue
-                    for m in range(0, 6):
-                        if _shiRange.count(int(w4[m])) <= 0:
-                            continue
-                        for n in range(0, 6):
-                            if _geRange.count(int(w5[n])) <= 0:
-                                continue
-                            numbers[w2[i] + w3[j] + w4[m] + w5[n]].append(w1)
-            pass
-        else:
-            for i in range(0, 6):
-                for j in range(0, 6):
-                    for m in range(0, 6):
-                        for n in range(0, 6):
-                            numbers[w2[i] + w3[j] + w4[m] + w5[n]].append(w1)
-            pass
-    #
-    for i in range(0, 10000):
-        n = "%04d" % i
-        numbers[n].sort()
-    #
-    numbers = numbers.items()
-    result = sorted(numbers, key=lambda i: len(i[1]), reverse=True)
-    #
-    targetSet = set()
-    for item in result:
-        memberCount = len(item[1])
-        if memberCount >= set_range[0] and memberCount <= set_range[1]:
-            targetSet.add(item[0])
-            pass
-    return targetSet
-
-# 初始化0000-9999
-
-
-def initNumbers():
-    # 所有单码集
-    numbers = {}
-    for i in range(0, 10000):
-        n = "%04d" % i
-        numbers[n] = []
-    return numbers
-
-
-def initNumbersSet():
-    target = set()
-    for i in range(0, 10000):
-        n = "%04d" % i
-        target.add(n)
-    return target
-
-
 def clearTextBrowser():
     ui.textBrowser.clear()
 
 
-# miniCheck
-def miniCheck():
-    with open("setting.json", "r") as f:
-        setting = f.read()
-    configuration = json.loads(setting)
-    count = int(configuration['miniCount'])
-    section = list(map(int, configuration['miniSection'].split(',')))
-    file = fileopenbox("文件选择", "读取文件")
-    if file == None:
-        ui.textBrowser.append('取消')
-        return
-    wb = openpyxl.load_workbook(file)
-    sheetsNames = wb.sheetnames
-    ws = wb[sheetsNames[0]]
-    indexes = range(1, count+1)
-    fiftySets = readWbFromIndex(
-        ws, indexes, "miniPart", section)
-    exportTxt('自定义集结果码', fiftySets)
-    pass
-
-
+#
 def sourceCheck():
     # 选择批量文件
     root = Tk()
@@ -1094,7 +1042,7 @@ def sourceCheck():
         ws = wb[sheetsNames[0]]
         allList = list(range(1, sourceCount + 1))
         # 集合
-        readWbFromIndexSource(ws, allList, filePath, key)
+        excelHelper.readWbFromIndexSource(ws, allList, filePath, key)
         key += 1
     #
     ui.textBrowser.append('计算完成')
@@ -1105,19 +1053,26 @@ def sourceCheck():
 
 
 def addSourceCheck():
-    with open("setting.json", "r") as f:
-        setting = f.read()
-    configuration = json.loads(setting)
-    sourceCount = int(configuration['sourceCount'])
+    root = Tk()
     ui.textBrowser.append('计算&产生数据中......')
     #
-    root = Tk()
     cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
     if cur == '':
+        root.destroy()
         ui.textBrowser.append('取消')
         return
+    try:
+        sourceCount = int(enterbox("选择文件一共多少数据?", '确认', "0"))
+    except TypeError:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    else:
+        pass
+        #
     filePath = diropenbox('结果存放目录')
     if filePath == None:
+        root.destroy()
         ui.textBrowser.append('取消')
         return
     # 排列组合 Cn2 后进行相加
@@ -1130,22 +1085,21 @@ def addSourceCheck():
         sheetsNames1 = wb1.sheetnames
         ws_j = wb1[sheetsNames1[0]]
         # 集合
-        readWbFromIndexAddSource(ws_i, ws_j, sourceCount, filePath, index)
+        excelHelper.readWbFromIndexAddSource(
+            ws_i, ws_j, sourceCount, filePath, index)
         index += 1
     # return result
-    ui.textBrowser.append('计算完成')
-    os.startfile(filePath)
     root.destroy()
     root.mainloop()
+    ui.textBrowser.append(
+        '计算完成')
+    os.startfile(filePath)
     #
     pass
 
 
 # 批量累加指定数量
 def mutilAdd():
-    # with open("setting.json", "r") as f:
-    #     setting = f.read()
-    # configuration = json.loads(setting)
     ui.textBrowser.append('计算&产生数据中......')
     #
     root = Tk()
@@ -1175,7 +1129,8 @@ def mutilAdd():
             wb = openpyxl.load_workbook(cur[item[j]])
             sheetsNames = wb.sheetnames
             wsList.append(wb[sheetsNames[0]])
-        readWbFromIndexAdd(wsList, eachFileDataCount, filePath, index)
+        excelHelper.readWbFromIndexAdd(
+            wsList, eachFileDataCount, filePath, index)
         index += 1
     ui.textBrowser.append('计算完成')
     os.startfile(filePath)
@@ -1185,149 +1140,10 @@ def mutilAdd():
     pass
 
 
-def readWbFromIndexSource(ws, indexes, filePath, parentIndex):
-    columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
-    parts = [
-        dict(onePart=('A', 'B'), twoPart=('C', 'D')),
-        dict(onePart=('A', 'C'), twoPart=('B', 'D')),
-        dict(onePart=('A', 'D'), twoPart=('B', 'C')),
-    ]
-    #
-    key = 1
-    for part in parts:
-        result = []
-        onePart = part['onePart']
-        twoPart = part['twoPart']
-
-        for i in range(0, len(indexes)):
-            dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
-            rx = indexes[i] + 1
-            for item in onePart:
-                column = columnList[item]
-                dataList[item] = (
-                    str(ws.cell(row=rx, column=column).value))
-
-            _dataList = dataList.copy()
-
-            for j in range(0, len(indexes)):
-                _rx = indexes[j]+1
-                for item in twoPart:
-                    _column = columnList[item]
-                    _dataList[item] = (
-                        str(ws.cell(row=_rx, column=_column).value))
-                result.append(_dataList)
-                _dataList = dataList.copy()
-
-        fullPath = exportSet(filePath, result, 'jiaocha',
-                             str(parentIndex)+str(key))
-        key += 1
-        #
-        excel = win32.gencache.EnsureDispatch('Excel.Application')
-        wb = excel.Workbooks.Open(fullPath)
-
-        # FileFormat = 51 is for .xlsx extension
-        wb.SaveAs(fullPath+"x", FileFormat=51)
-        wb.Close()  # FileFormat = 56 is for .xls extension
-        excel.Application.Quit()
-        #
-        os.remove(fullPath)
-
-
-# 交叉累加
-def readWbFromIndexAddSource(ws, _ws, sourceCount, filePath, parentIndex):
-    indexes = list(range(1, sourceCount*2 + 1))
-    columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
-    parts = [
-        dict(onePart=('A', 'B'), twoPart=('C', 'D')),
-        dict(onePart=('A', 'C'), twoPart=('B', 'D')),
-        dict(onePart=('A', 'D'), twoPart=('B', 'C')),
-    ]
-    #
-    key = 1
-    for part in parts:
-        result = []
-        onePart = part['onePart']
-        twoPart = part['twoPart']
-        #
-        for i in range(0, len(indexes)):
-            dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
-            for item in onePart:
-                column = columnList[item]
-                if i >= sourceCount:
-                    rx = indexes[i-sourceCount] + 1
-                    dataList[item] = (
-                        str(_ws.cell(row=rx, column=column).value))
-                else:
-                    rx = indexes[i] + 1
-                    dataList[item] = (
-                        str(ws.cell(row=rx, column=column).value))
-
-            _dataList = dataList.copy()
-
-            for j in range(0, len(indexes)):
-                for item in twoPart:
-                    _column = columnList[item]
-                    if j >= sourceCount:
-                        _rx = indexes[j-sourceCount]+1
-                        _dataList[item] = (
-                            str(_ws.cell(row=_rx, column=_column).value))
-                    else:
-                        _rx = indexes[j]+1
-                        _dataList[item] = (
-                            str(ws.cell(row=_rx, column=_column).value))
-                result.append(_dataList)
-                _dataList = dataList.copy()
-
-        #
-        fullPath = exportSet(filePath, result, 'add',
-                             str(parentIndex)+str(key))
-        key += 1
-        #
-        excel = win32.gencache.EnsureDispatch('Excel.Application')
-        wb = excel.Workbooks.Open(fullPath)
-
-        # FileFormat = 51 is for .xlsx extension
-        wb.SaveAs(fullPath+"x", FileFormat=51)
-        wb.Close()  # FileFormat = 56 is for .xls extension
-        excel.Application.Quit()
-        #
-        os.remove(fullPath)
-
-
-# 单纯累加
-def readWbFromIndexAdd(wsList, eachFileDataCount, filePath, parentIndex):
-    indexes = list(range(1, eachFileDataCount + 1))
-    columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
-    parts = ('A', 'B', 'C', 'D')
-    #
-    result = []
-    for ws in wsList:
-        #
-        for j in range(0, len(indexes)):
-            dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
-            for item in parts:
-                _column = columnList[item]
-                _rx = indexes[j]+1
-                dataList[item] = (
-                    str(ws.cell(row=_rx, column=_column).value))
-            result.append(dataList)
-        #
-    fullPath = exportSet(filePath, result, 'leijia',
-                         str(parentIndex))
-    #
-    excel = win32.gencache.EnsureDispatch('Excel.Application')
-    wb = excel.Workbooks.Open(fullPath)
-
-    # FileFormat = 51 is for .xlsx extension
-    wb.SaveAs(fullPath+"x", FileFormat=51)
-    wb.Close()  # FileFormat = 56 is for .xls extension
-    excel.Application.Quit()
-    #
-    os.remove(fullPath)
-
 # 批量excel set 区间处理
 
 
+# 批量区间
 def excelSet():
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -1337,35 +1153,53 @@ def excelSet():
     ui.textBrowser.append('计算数据中......')
     #
     root = Tk()
+    # cur = diropenbox('数据目录')
     cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
     if cur == '':
+        root.destroy()
         ui.textBrowser.append('取消')
         return
     filePath = diropenbox('结果存放目录')
     if filePath == None:
+        root.destroy()
         ui.textBrowser.append('取消')
         return
     # 排列组合 Cn2 后进行相加
+    # index = 1
+    # for _root, dirs, files in os.walk(cur):
+    #     for _file in files:
+    #         path = os.path.join(_root, _file)
+    #         wb = openpyxl.load_workbook(path)
+    #         sheetsNames = wb.sheetnames
+    #         ws = wb[sheetsNames[0]]
+    #         indexes = range(1, excelCount+1)
+    #         resultSet = excelHelper.readWbFromIndex(
+    #             ws, indexes, "批量结果集"+str(index), section)
+    #         file = open(filePath+"\\批量结果集"+str(index) +
+    #                     '_总计'+str(len(resultSet))+'.txt', 'w')
+    #         file.write(','.join(list(resultSet)))
+    #         file.flush()
+    #         # return result
+    #         file.close()
+    #         index += 1
     index = 1
     for path in cur:
         wb = openpyxl.load_workbook(path)
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = readWbFromIndex(
-            ws, indexes, "批量结果集"+str(index), section)
+        resultSet = excelHelper.readWbFromIndex(
+            ws, indexes, section)
         file = open(filePath+"\\批量结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
         file.flush()
+        file.close()
         index += 1
-    # return result
-    file.close()
-    ui.textBrowser.append('计算完成')
-    os.startfile(filePath)
-
     root.destroy()
     root.mainloop()
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
     #
     pass
 
@@ -1397,8 +1231,8 @@ def TwosideExcelSet():
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = readWbFromIndex(
-            ws, indexes, "批量左区间结果集"+str(index), leftSection)
+        resultSet = excelHelper.readWbFromIndex(
+            ws, indexes, leftSection)
         file = open(filePath+"\\批量左区间结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -1409,8 +1243,8 @@ def TwosideExcelSet():
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = readWbFromIndex(
-            ws, indexes, "批量右区间结果集"+str(index), rightSection)
+        resultSet = excelHelper.readWbFromIndex(
+            ws, indexes, rightSection)
         file = open(filePath+"\\批量右区间结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -1432,16 +1266,24 @@ def originPaste():
     root = Tk()
     cur = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
     if cur == '':
+        root.destroy()
         ui.textBrowser.append('取消')
         return
-    totalCount = int(enterbox("选择文件一共多少数据?", '确认', "0"))
-    dataCount = int(enterbox("多少数据为一个新文件?", '确认', "0"))
-    fileCount = int(enterbox("需要生成多少文件？", '确认', "0"))
-    #
+    try:
+        totalCount = int(enterbox("选择文件一共多少数据?", '确认', "0"))
+        dataCount = int(enterbox("多少数据为一个新文件?", '确认', "0"))
+        fileCount = int(enterbox("需要生成多少文件？", '确认', "0"))
+    except TypeError:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    else:
+        pass
+        #
     filePath = diropenbox('结果存放目录')
     if filePath == None:
-        ui.textBrowser.append('取消')
         root.destroy()
+        ui.textBrowser.append('取消')
         return
         #
     #
@@ -1454,6 +1296,7 @@ def originPaste():
     bList = []
     cList = []
     dList = []
+    eList = []
     # 获取excel abcd 4列总数据
     for i in range(0, len(indexes)):
         rx = indexes[i] + 1
@@ -1466,6 +1309,8 @@ def originPaste():
         w4 = str(ws.cell(row=rx, column=4).value)
         # 个
         w5 = str(ws.cell(row=rx, column=5).value)
+        # 第五位
+        w6 = str(ws.cell(row=rx, column=6).value)
         if w2 == "None":
             break
         else:
@@ -1473,16 +1318,17 @@ def originPaste():
             bList.append(w3)
             cList.append(w4)
             dList.append(w5)
+            eList.append(w6)
     #
     for i in range(0, fileCount):
         #
         result = []
         for k in range(0, dataCount):
-            indexList = random.sample(range(0, totalCount), 4)
+            indexList = random.sample(range(0, totalCount), 5)
             result.append(dict(A=aList[indexList[0]], B=bList[indexList[1]],
-                               C=cList[indexList[2]], D=dList[indexList[3]]))
-        fullPath = exportSet(filePath, result, 'zuhe',
-                             str(i+1))
+                               C=cList[indexList[2]], D=dList[indexList[3]], E=eList[indexList[4]]))
+        fullPath = excelHelper.exportSet(filePath, result, 'zuhe',
+                                         str(i+1))
         #
         excel = win32.gencache.EnsureDispatch('Excel.Application')
         wb = excel.Workbooks.Open(fullPath)
@@ -1494,33 +1340,43 @@ def originPaste():
         #
         os.remove(fullPath)
 
-    ui.textBrowser.append('计算完成')
-    os.startfile(filePath)
     root.destroy()
     root.mainloop()
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
     #
     pass
 
-
 # 统计各位置
+
+
 def staticsPosition():
     ui.textBrowser.append('计算数据中......')
     #
+    root = Tk()
     path = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
     if path == '':
+        root.destroy()
         ui.textBrowser.append('取消')
         return
-    excelCount = int(enterbox("选择文件的数据量", '确认', "0"))
+    try:
+        excelCount = int(enterbox("选择文件的数据量", '确认', "0"))
+    except TypeError:
+        root.destroy()
+        return False
+    else:
+        pass
     #
     wb = openpyxl.load_workbook(path)
     sheetsNames = wb.sheetnames
     ws = wb[sheetsNames[0]]
     indexes = range(1, excelCount+1)
-
+    #
     aList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     bList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     cList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     dList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    eList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     for i in range(0, len(indexes)):
         rx = indexes[i] + 1
@@ -1533,20 +1389,25 @@ def staticsPosition():
         w4 = str(ws.cell(row=rx, column=4).value)
         # 个
         w5 = str(ws.cell(row=rx, column=5).value)
+        #
+        w6 = str(ws.cell(row=rx, column=6).value)
         if w2 == "None":
             break
         #
-        for i in range(0, 6):
+        for i in range(0, len(w2)):
             aList[int(w2[i])] += 1
             pass
-        for j in range(0, 6):
+        for j in range(0, len(w3)):
             bList[int(w3[j])] += 1
             pass
-        for m in range(0, 6):
+        for m in range(0, len(w4)):
             cList[int(w4[m])] += 1
             pass
-        for n in range(0, 6):
+        for n in range(0, len(w5)):
             dList[int(w5[n])] += 1
+            pass
+        for n in range(0, len(w6)):
+            eList[int(w6[n])] += 1
             pass
         pass
 
@@ -1558,59 +1419,27 @@ def staticsPosition():
     bSet = dict(zip(strList, bList))
     cSet = dict(zip(strList, cList))
     dSet = dict(zip(strList, dList))
+    eSet = dict(zip(strList, eList))
     #
     aRes = sorted(aSet.items(), key=lambda item: item[1], reverse=True)
     bRes = sorted(bSet.items(), key=lambda item: item[1], reverse=True)
     cRes = sorted(cSet.items(), key=lambda item: item[1], reverse=True)
     dRes = sorted(dSet.items(), key=lambda item: item[1], reverse=True)
+    eRes = sorted(eSet.items(), key=lambda item: item[1], reverse=True)
 
-    res = [aRes, bRes, cRes, dRes]
+    res = [aRes, bRes, cRes, dRes, eRes]
 
-    for i in range(0, 4):
+    for i in range(0, 5):
         ui.textBrowser.append('第'+str(i+1)+'位置结果：')
         ui.textBrowser.append('----')
         for j in range(0, len(res[i])):
-            ui.textBrowser.append(aRes[j][0]+':'+str(aRes[j][1]))
+            ui.textBrowser.append(res[i][j][0]+':'+str(res[i][j][1]))
         ui.textBrowser.append('\n')
+    #
+    root.destroy()
+    root.mainloop()
 
     pass
-
-
-def exportSet(path, data, bonus='', key=0):
-    _workbook = xlwt.Workbook(encoding='utf-8')
-    # 样式
-    style = xlwt.XFStyle()  # 创建一个样式对象，初始化样式
-    al = xlwt.Alignment()
-    al.horz = 0x02      # 设置水平居中
-    al.vert = 0x01      # 设置垂直居中
-    style.alignment = al
-    # 注意: 在add_sheet时, 置参数cell_overwrite_ok=True, 可以覆盖原单元格中数据。
-    # cell_overwrite_ok默认为False, 覆盖的话, 会抛出异常.
-    sheet = _workbook.add_sheet('Sheet1', cell_overwrite_ok=True)
-    # 获取并写入数据段信息
-    sheet.write(0, 0, '姓名', style)
-    sheet.write(0, 1, '数据1', style)
-    sheet.write(0, 2, '数据2', style)
-    sheet.write(0, 3, '数据3', style)
-    sheet.write(0, 4, '数据4', style)
-    for row in range(0, len(data)):
-        for index in range(0, 4):
-            sheet.write(row+1, 0, 'A'+str(row+1), style)
-            sheet.write(row+1, index+1, int(data[row]
-                                            [['A', 'B', 'C', 'D'][index]]), style)
-    #
-    if bonus == '':
-        fullPath = path+'\\源文件'+'总计'+str(len(data))+'.xls'
-    if bonus == 'add':
-        fullPath = path+'\\叠加文件'+str(key)+'.xls'
-    if bonus == 'leijia':
-        fullPath = path+'\\指定数量累加文件'+str(key)+'.xls'
-    if bonus == 'jiaocha':
-        fullPath = path+'\\交叉文件'+str(key)+'.xls'
-    if bonus == 'zuhe':
-        fullPath = path+'\\组合文件'+str(key)+'.xls'
-    _workbook.save(fullPath)
-    return fullPath
 
 
 if __name__ == '__main__':
@@ -1652,13 +1481,18 @@ if __name__ == '__main__':
     configui.addSection.clicked.connect(addSection)
     configui.delSection.clicked.connect(delSection)
     MainWindow.show()
-    # action绑定
+    # txt action绑定
     ui.actionjiaoji.triggered.connect(jiaoji)
     ui.actionchaji.triggered.connect(chaji)
     ui.actionbingji.triggered.connect(bingji)
     ui.actioncheck.triggered.connect(check)
     ui.actionBind.triggered.connect(mutilBind)
     ui.actionmutilCha.triggered.connect(mutilCha)
+
+    # 逆序算法
+    ui.actionreverseResult.triggered.connect(reverseCheck)
+
+    # ------------------
     # 随机求交
     ui.actiontxtRandom.triggered.connect(txtRandomTimes)
     ui.actiontxtRandomGroup.triggered.connect(txtRandomTimesGroup)
@@ -1675,12 +1509,19 @@ if __name__ == '__main__':
     # excel类绑定
     ui.actionconfig.triggered.connect(showConfig)
     ui.actionmainCheck.triggered.connect(mainCheck)
-    ui.actionmini.triggered.connect(miniCheck)
+    # 交叉
     ui.actionSource.triggered.connect(sourceCheck)
+    # 累加
     ui.actionAddSource.triggered.connect(addSourceCheck)
+    # 批量累加
     ui.actionmutilAdd.triggered.connect(mutilAdd)
+    # 批量单区间
     ui.actionExcelSet.triggered.connect(excelSet)
+    # 批量双区间
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
+    # 原始数据随机组合
     ui.actionoriginPaste.triggered.connect(originPaste)
+    # 统计各位置数字
     ui.actionStaticsPosition.triggered.connect(staticsPosition)
+
     sys.exit(app.exec_())
