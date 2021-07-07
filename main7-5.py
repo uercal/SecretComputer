@@ -1,6 +1,8 @@
+from math import trunc
 import sys
-from tkinter.constants import FALSE
+from tkinter.constants import FALSE, NONE
 from typing import ItemsView
+from PyQt5.QtCore import right
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
 from easygui import fileopenbox, diropenbox, ccbox, enterbox, passwordbox
@@ -283,7 +285,7 @@ def reverseCheck():
             recommon += res[j][0]
         ui.textBrowser.append('6位数推荐结果：'+recommon[0:6])
         ui.textBrowser.append('7位数推荐结果：'+recommon[0:7])
-        ui.textBrowser.append('========== 分割线 ============')  
+        ui.textBrowser.append('========== 分割线 ============')
     pass
 
 
@@ -1025,6 +1027,8 @@ def clearTextBrowser():
 def sourceCheck():
     # 选择批量文件
     root = Tk()
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
+    #
     cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
     if cur == '':
         ui.textBrowser.append('取消')
@@ -1042,7 +1046,10 @@ def sourceCheck():
         ws = wb[sheetsNames[0]]
         allList = list(range(1, sourceCount + 1))
         # 集合
-        excelHelper.readWbFromIndexSource(ws, allList, filePath, key)
+        if helperVersion == True:
+            excelHelper.readWbFrom4IndexSource(ws, allList, filePath, key)
+        else:
+            excelHelper.readWbFromIndexSource(ws, allList, filePath, key)
         key += 1
     #
     ui.textBrowser.append('计算完成')
@@ -1054,6 +1061,7 @@ def sourceCheck():
 
 def addSourceCheck():
     root = Tk()
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
     ui.textBrowser.append('计算&产生数据中......')
     #
     cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
@@ -1085,8 +1093,12 @@ def addSourceCheck():
         sheetsNames1 = wb1.sheetnames
         ws_j = wb1[sheetsNames1[0]]
         # 集合
-        excelHelper.readWbFromIndexAddSource(
-            ws_i, ws_j, sourceCount, filePath, index)
+        if helperVersion == True:
+            excelHelper.readWbFrom4IndexAddSource(
+                ws_i, ws_j, sourceCount, filePath, index)
+        else:
+            excelHelper.readWbFromIndexAddSource(
+                ws_i, ws_j, sourceCount, filePath, index)
         index += 1
     # return result
     root.destroy()
@@ -1101,6 +1113,7 @@ def addSourceCheck():
 # 批量累加指定数量
 def mutilAdd():
     ui.textBrowser.append('计算&产生数据中......')
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
     #
     root = Tk()
     cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
@@ -1129,8 +1142,13 @@ def mutilAdd():
             wb = openpyxl.load_workbook(cur[item[j]])
             sheetsNames = wb.sheetnames
             wsList.append(wb[sheetsNames[0]])
-        excelHelper.readWbFromIndexAdd(
-            wsList, eachFileDataCount, filePath, index)
+        #
+        if helperVersion == True:
+            excelHelper.readWbFromIndex4Add(
+                wsList, eachFileDataCount, filePath, index)
+        else:
+            excelHelper.readWbFromIndexAdd(
+                wsList, eachFileDataCount, filePath, index)
         index += 1
     ui.textBrowser.append('计算完成')
     os.startfile(filePath)
@@ -1145,6 +1163,7 @@ def mutilAdd():
 
 # 批量区间
 def excelSet():
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
@@ -1164,32 +1183,19 @@ def excelSet():
         root.destroy()
         ui.textBrowser.append('取消')
         return
-    # 排列组合 Cn2 后进行相加
-    # index = 1
-    # for _root, dirs, files in os.walk(cur):
-    #     for _file in files:
-    #         path = os.path.join(_root, _file)
-    #         wb = openpyxl.load_workbook(path)
-    #         sheetsNames = wb.sheetnames
-    #         ws = wb[sheetsNames[0]]
-    #         indexes = range(1, excelCount+1)
-    #         resultSet = excelHelper.readWbFromIndex(
-    #             ws, indexes, "批量结果集"+str(index), section)
-    #         file = open(filePath+"\\批量结果集"+str(index) +
-    #                     '_总计'+str(len(resultSet))+'.txt', 'w')
-    #         file.write(','.join(list(resultSet)))
-    #         file.flush()
-    #         # return result
-    #         file.close()
-    #         index += 1
     index = 1
     for path in cur:
         wb = openpyxl.load_workbook(path)
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = excelHelper.readWbFromIndex(
-            ws, indexes, section)
+        #
+        if helperVersion == True:
+            resultSet = excelHelper.readWbFrom4Index(
+                ws, indexes, section)
+        else:
+            resultSet = excelHelper.readWbFromIndex(
+                ws, indexes, section)
         file = open(filePath+"\\批量结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -1204,8 +1210,56 @@ def excelSet():
     pass
 
 
+# 批量分组然后单区间
+def partsSingleExcel():
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    section = list(map(int, configuration['excelSection'].split(',')))
+    ui.textBrowser.append('计算数据中......')
+    #
+    root = Tk()
+    cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    #
+    try:
+        eachFileDataCount = int(enterbox("每个文件多少数据?", '确认', ""))
+        eachGroupFileCount = int(enterbox("多少数据为一组?", '确认', ""))
+    except TypeError:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    else:
+        pass
+        #
+    # 进行分组
+    pathListArray = []
+    for i in range(0, len(cur), eachGroupFileCount):
+        b = cur[i:i+eachGroupFileCount]
+        if len(b) == eachGroupFileCount:
+            pathListArray.append(b)
+
+    excelHelper.partsReadWbFromIndex(
+        pathListArray, eachFileDataCount, section, filePath)
+
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    pass
+
+
 # 批量双区间
 def TwosideExcelSet():
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
@@ -1231,8 +1285,12 @@ def TwosideExcelSet():
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = excelHelper.readWbFromIndex(
-            ws, indexes, leftSection)
+        if helperVersion == True:
+            resultSet = excelHelper.readWbFrom4Index(
+                ws, indexes, leftSection)
+        else:
+            resultSet = excelHelper.readWbFromIndex(
+                ws, indexes, leftSection)
         file = open(filePath+"\\批量左区间结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -1243,8 +1301,12 @@ def TwosideExcelSet():
         sheetsNames = wb.sheetnames
         ws = wb[sheetsNames[0]]
         indexes = range(1, excelCount+1)
-        resultSet = excelHelper.readWbFromIndex(
-            ws, indexes, rightSection)
+        if helperVersion == True:
+            resultSet = excelHelper.readWbFrom4Index(
+                ws, indexes, rightSection)
+        else:
+            resultSet = excelHelper.readWbFromIndex(
+                ws, indexes, rightSection)
         file = open(filePath+"\\批量右区间结果集"+str(index) +
                     '_总计'+str(len(resultSet))+'.txt', 'w')
         file.write(','.join(list(resultSet)))
@@ -1264,15 +1326,15 @@ def TwosideExcelSet():
 def originPaste():
     #
     root = Tk()
-    cur = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
+    cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
     if cur == '':
         root.destroy()
         ui.textBrowser.append('取消')
         return
     try:
-        totalCount = int(enterbox("选择文件一共多少数据?", '确认', "0"))
+        totalCount = int(enterbox("选择文件每个一共多少数据?", '确认', "0"))
         dataCount = int(enterbox("多少数据为一个新文件?", '确认', "0"))
-        fileCount = int(enterbox("需要生成多少文件？", '确认', "0"))
+        fileCount = int(enterbox("每个文件需要生成多少文件？", '确认', "0"))
     except TypeError:
         root.destroy()
         ui.textBrowser.append('取消')
@@ -1288,58 +1350,33 @@ def originPaste():
         #
     #
     ui.textBrowser.append('开始计算....')
-    wb = openpyxl.load_workbook(cur)
-    sheetsNames = wb.sheetnames
-    ws = wb[sheetsNames[0]]
-    indexes = range(1, totalCount+1)
-    aList = []
-    bList = []
-    cList = []
-    dList = []
-    eList = []
-    # 获取excel abcd 4列总数据
-    for i in range(0, len(indexes)):
-        rx = indexes[i] + 1
-        w1 = str(ws.cell(row=rx, column=1).value)
-        # 千
-        w2 = str(ws.cell(row=rx, column=2).value)
-        # 百
-        w3 = str(ws.cell(row=rx, column=3).value)
-        # 十
-        w4 = str(ws.cell(row=rx, column=4).value)
-        # 个
-        w5 = str(ws.cell(row=rx, column=5).value)
-        # 第五位
-        w6 = str(ws.cell(row=rx, column=6).value)
-        if w2 == "None":
-            break
-        else:
-            aList.append(w2)
-            bList.append(w3)
-            cList.append(w4)
-            dList.append(w5)
-            eList.append(w6)
     #
-    for i in range(0, fileCount):
-        #
-        result = []
-        for k in range(0, dataCount):
-            indexList = random.sample(range(0, totalCount), 5)
-            result.append(dict(A=aList[indexList[0]], B=bList[indexList[1]],
-                               C=cList[indexList[2]], D=dList[indexList[3]], E=eList[indexList[4]]))
-        fullPath = excelHelper.exportSet(filePath, result, 'zuhe',
-                                         str(i+1))
-        #
-        excel = win32.gencache.EnsureDispatch('Excel.Application')
-        wb = excel.Workbooks.Open(fullPath)
-
-        # FileFormat = 51 is for .xlsx extension
-        wb.SaveAs(fullPath+"x", FileFormat=51)
-        wb.Close()  # FileFormat = 56 is for .xls extension
-        excel.Application.Quit()
-        #
-        os.remove(fullPath)
-
+    index = 1
+    ResultList = []
+    for path in cur:
+        pathList = excelHelper.mutilOriginPaste(
+            path, filePath, totalCount, fileCount, dataCount, index)
+        index += 1
+        ResultList.append(pathList)
+        pass
+    # 操作ResultList 进行叠加
+    if len(ResultList) != 1:
+        directoryExist = os.path.exists(filePath+'\\同序叠加结果')
+        if directoryExist == False:
+            os.makedirs(filePath+'\\同序叠加结果')
+        _index = 1
+        for n in range(0, fileCount):
+            wsList = []
+            for j in range(0, len(cur)):
+                wb = openpyxl.load_workbook(ResultList[j][n])
+                sheetsNames = wb.sheetnames
+                wsList.append(wb[sheetsNames[0]])
+            excelHelper.readWbFromIndex4Add(
+                wsList, dataCount, filePath+'\\同序叠加结果', _index)
+            _index += 1
+            pass
+    pass
+    #
     root.destroy()
     root.mainloop()
     ui.textBrowser.append('计算完成')
@@ -1347,7 +1384,44 @@ def originPaste():
     #
     pass
 
-# 统计各位置
+
+def originPasteSingle():
+   #
+    root = Tk()
+    cur = filedialog.askopenfilename(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    try:
+        totalCount = int(enterbox("选择文件每个一共多少数据?", '确认', "0"))
+        dataCount = int(enterbox("多少数据为一个新文件?", '确认', "0"))
+        fileCount = int(enterbox("每个文件需要生成多少文件？", '确认', "0"))
+    except TypeError:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+    else:
+        pass
+        #
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        root.destroy()
+        ui.textBrowser.append('取消')
+        return
+        #
+    #
+    ui.textBrowser.append('开始计算....')
+    #
+    excelHelper.mutilOriginPaste(
+        cur, filePath, totalCount, fileCount, dataCount, 0)
+
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
+    #
+    pass
 
 
 def staticsPosition():
@@ -1442,6 +1516,52 @@ def staticsPosition():
     pass
 
 
+# 批量命中excel统计
+def excelMissing():
+    #
+    root = Tk()
+    cur = filedialog.askopenfilenames(filetypes=[('xlsx files', '.xlsx')])
+    if cur == '':
+        root.destroy()
+        root.mainloop()
+        ui.textBrowser.append('取消')
+        return
+    eachDataCount = int(enterbox("每个文件多少条数据?", '确认', "0"))
+    rightNumber = enterbox("输入命中号码?", '确认', "0")
+    if rightNumber == None:
+        root.destroy()
+        root.mainloop()
+        ui.textBrowser.append('取消')
+        return
+    maxCount = 0
+    minCount = 0
+    totalCount = 0
+    for path in cur:
+        # left
+        wb = openpyxl.load_workbook(path)
+        sheetsNames = wb.sheetnames
+        ws = wb[sheetsNames[0]]
+        indexes = range(1, eachDataCount+1)
+        count = excelHelper.missingEachWbFromIndex(
+            ws, indexes, rightNumber)
+        totalCount += count
+        if count > maxCount:
+            maxCount = count
+        if count < minCount and minCount != 0:
+            minCount = count
+        if minCount == 0:
+            minCount = count
+    avgCount = (totalCount)/len(cur)
+    ui.textBrowser.append('计算完成')
+    ui.textBrowser.append('最大命中结果：'+str(maxCount))
+    ui.textBrowser.append('最小命中结果：'+str(minCount))
+    ui.textBrowser.append('平均值：'+str(avgCount))
+    ui.textBrowser.append('======================================')
+    root.destroy()
+    root.mainloop()
+    pass
+
+
 if __name__ == '__main__':
 
     #
@@ -1515,13 +1635,22 @@ if __name__ == '__main__':
     ui.actionAddSource.triggered.connect(addSourceCheck)
     # 批量累加
     ui.actionmutilAdd.triggered.connect(mutilAdd)
+    # ------
     # 批量单区间
     ui.actionExcelSet.triggered.connect(excelSet)
+    # 批量分组单区间
+    ui.actionpartsSingleExcel.triggered.connect(partsSingleExcel)
+
+    # ----
     # 批量双区间
     ui.actionactionTwoside.triggered.connect(TwosideExcelSet)
     # 原始数据随机组合
-    ui.actionoriginPaste.triggered.connect(originPaste)
+    ui.actionsingleOriginPaste.triggered.connect(originPasteSingle)
+    ui.actionmutilOriginPaste.triggered.connect(originPaste)
+    # ui.actiondirectoryAdd.triggered.connect(direcotryOriginAdd)
     # 统计各位置数字
     ui.actionStaticsPosition.triggered.connect(staticsPosition)
+    # 批量命中
+    ui.actionexcelMissing.triggered.connect(excelMissing)
 
     sys.exit(app.exec_())

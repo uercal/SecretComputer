@@ -103,19 +103,6 @@
       </item>
      </widget>
     </item>
-    <item row="6" column="2">
-     <widget class="QLabel" name="label_10">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>自定义人数</string>
-      </property>
-     </widget>
-    </item>
     <item row="4" column="3">
      <widget class="QLineEdit" name="leftSection"/>
     </item>
@@ -129,19 +116,6 @@
       </property>
       <property name="text">
        <string>落入号码</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2">
-     <widget class="QLabel" name="label_9">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>自定义单区间</string>
       </property>
      </widget>
     </item>
@@ -170,9 +144,6 @@
        <string>每次结果交集次数</string>
       </property>
      </widget>
-    </item>
-    <item row="5" column="3" colspan="2">
-     <widget class="QLineEdit" name="miniSection"/>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_2">
@@ -298,9 +269,6 @@
        <string>50人组数</string>
       </property>
      </widget>
-    </item>
-    <item row="6" column="3" colspan="2">
-     <widget class="QLineEdit" name="miniCount"/>
     </item>
     <item row="4" column="2">
      <widget class="QLabel" name="label_14">

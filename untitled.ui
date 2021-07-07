@@ -67,15 +67,30 @@
      <property name="title">
       <string>excel类</string>
      </property>
+     <widget class="QMenu" name="menu_5">
+      <property name="title">
+       <string>原始数据随机组合</string>
+      </property>
+      <addaction name="actionsingleOriginPaste"/>
+      <addaction name="actionmutilOriginPaste"/>
+     </widget>
+     <widget class="QMenu" name="menupiliangdanqujian">
+      <property name="title">
+       <string>批量单区间</string>
+      </property>
+      <addaction name="actionExcelSet"/>
+      <addaction name="actionpartsSingleExcel"/>
+     </widget>
      <addaction name="actionmainCheck"/>
      <addaction name="actionmini"/>
      <addaction name="actionSource"/>
      <addaction name="actionAddSource"/>
      <addaction name="actionmutilAdd"/>
-     <addaction name="actionExcelSet"/>
      <addaction name="actionactionTwoside"/>
-     <addaction name="actionoriginPaste"/>
+     <addaction name="menu_5"/>
      <addaction name="actionStaticsPosition"/>
+     <addaction name="actionexcelMissing"/>
+     <addaction name="menupiliangdanqujian"/>
     </widget>
     <widget class="QMenu" name="menu_4">
      <property name="title">
@@ -220,11 +235,6 @@
     <string>批量累加指定数量</string>
    </property>
   </action>
-  <action name="actionoriginPaste">
-   <property name="text">
-    <string>原始数据随机组合</string>
-   </property>
-  </action>
   <action name="actionStaticsPosition">
    <property name="text">
     <string>统计各位置数字</string>
@@ -233,6 +243,31 @@
   <action name="actionreverseResult">
    <property name="text">
     <string>逆算生成</string>
+   </property>
+  </action>
+  <action name="actionexcelMissing">
+   <property name="text">
+    <string>命中情况统计</string>
+   </property>
+  </action>
+  <action name="actionsingleOriginPaste">
+   <property name="text">
+    <string>单文件</string>
+   </property>
+  </action>
+  <action name="actionmutilOriginPaste">
+   <property name="text">
+    <string>批量</string>
+   </property>
+  </action>
+  <action name="actiondirectoryAdd">
+   <property name="text">
+    <string>文件夹同序叠加</string>
+   </property>
+  </action>
+  <action name="actionpartsSingleExcel">
+   <property name="text">
+    <string>批量分组单区间</string>
    </property>
   </action>
  </widget>
