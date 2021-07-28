@@ -1,11 +1,11 @@
 '''
 Author: Uercal
 Date: 2021-06-15 14:39:35
-LastEditTime: 2021-07-07 18:14:47
+LastEditTime: 2021-07-14 09:19:48
 Description:  Excel处理方法类
 '''
 import os
-from sys import path
+from sys import argv, path
 
 from PyQt5.QtCore import right
 import helper
@@ -17,6 +17,8 @@ import openpyxl
 import random
 # 多线程
 from threading import Thread
+# 多进程
+import multiprocessing as mp
 
 # 根据给定索引集 进行websheet读取写入numbers
 
@@ -254,8 +256,8 @@ def readWbFrom4IndexSource(ws, indexes, filePath, parentIndex):
                 result.append(_dataList)
                 _dataList = dataList.copy()
 
-        fullPath = exportSet(filePath, result, 'jiaocha',
-                             str(parentIndex)+str(key))
+        fullPath = export4Set(filePath, result, 'jiaocha',
+                              str(parentIndex)+str(key))
         key += 1
         #
         excel = win32.gencache.EnsureDispatch('Excel.Application')
@@ -299,6 +301,8 @@ def exportSet(path, data, bonus='', key=0):
         fullPath = path+'\\叠加文件'+str(key)+'.xls'
     if bonus == 'leijia':
         fullPath = path+'\\指定数量累加文件'+str(key)+'.xls'
+    if bonus == 'leijiadir':
+        fullPath = path+'\\文件夹同序累加文件'+str(key)+'.xls'
     if bonus == 'jiaocha':
         fullPath = path+'\\交叉文件'+str(key)+'.xls'
     if bonus == 'zuhe':
@@ -336,6 +340,8 @@ def export4Set(path, data, bonus='', key=0):
         fullPath = path+'\\叠加文件'+str(key)+'.xls'
     if bonus == 'leijia':
         fullPath = path+'\\指定数量累加文件'+str(key)+'.xls'
+    if bonus == 'leijiadir':
+        fullPath = path+'\\文件夹同序累加文件'+str(key)+'.xls'
     if bonus == 'jiaocha':
         fullPath = path+'\\交叉文件'+str(key)+'.xls'
     if bonus == 'zuhe':
@@ -386,6 +392,46 @@ def readWbFromIndex4Add(wsList, eachFileDataCount, filePath, parentIndex):
         #
         for j in range(0, len(indexes)):
             dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
+            for item in parts:
+                _column = columnList[item]
+                _rx = indexes[j]+1
+                dataList[item] = (
+                    str(ws.cell(row=_rx, column=_column).value))
+            result.append(dataList)
+        #
+    fullPath = export4Set(filePath, result, 'leijia',
+                          str(parentIndex))
+    #
+    excel = win32.gencache.EnsureDispatch('Excel.Application')
+    wb = excel.Workbooks.Open(fullPath)
+
+    # FileFormat = 51 is for .xlsx extension
+    wb.SaveAs(fullPath+"x", FileFormat=51)
+    wb.Close()  # FileFormat = 56 is for .xls extension
+    excel.Application.Quit()
+    #
+    os.remove(fullPath)
+
+
+# 累加变种
+def readWbFromIndexAddDir(wsList, eachFileDataCount, filePath, parentIndex, type):
+    if type == 5:
+        indexes = list(range(1, eachFileDataCount + 1))
+        columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5, 'E': 6}
+        parts = ('A', 'B', 'C', 'D', 'E')
+    else:
+        indexes = list(range(1, eachFileDataCount + 1))
+        columnList = {'A': 2, 'B': 3, 'C': 4, 'D': 5}
+        parts = ('A', 'B', 'C', 'D')
+    #
+    result = []
+    for ws in wsList:
+        #
+        for j in range(0, len(indexes)):
+            if type == 5:
+                dataList = {'A': '', 'B': '', 'C': '', 'D': '', 'E': ''}
+            else:
+                dataList = {'A': '', 'B': '', 'C': '', 'D': ''}
             for item in parts:
                 _column = columnList[item]
                 _rx = indexes[j]+1
@@ -636,21 +682,19 @@ def mutilOriginPaste(path, filePath, totalCount, fileCount, dataCount, index):
 # 多线程批量进行单区间处理 （仅4）
 def partsReadWbFromIndex(pathArray, eachDataCount, section, filePath):
     # 线程列表
-    threadList = []
+    pList = []
     # 需要线程数
     times = len(pathArray)
-    count = 0
     for i in range(0, times):
         pathList = pathArray[i]
-        thread = Thread(target=readWbFromIndexThread, args=[
-                        pathList, eachDataCount, section, filePath, str(i+1)])
-        threadList.append(thread)
-        #
-        thread.start()
+        p = mp.Process(target=readWbFromIndexThread, args=(
+            pathList, eachDataCount, section, filePath, str(i+1)))
+        p.start()
+        pList.append(p)
         pass
     #
-    for item in threadList:
-        item.join()
+    for i in range(0, len(pList)):
+        pList[i].join()
     pass
 
 

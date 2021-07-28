@@ -86,7 +86,7 @@ def basicTxtSet(method):
     ui.textBrowser.append(
         '================================================')
     os.startfile(filePath)
-    postData(filePath+'\\'+resultStr+'_'+str(len(resultSet))+'.txt')
+    # postData(filePath+'\\'+resultStr+'_'+str(len(resultSet))+'.txt')
 
 
 def jiaoji():
@@ -146,7 +146,7 @@ def check():
     ui.textBrowser.append('运算结果 : 数量：'+str(len(resultSet)))
     ui.textBrowser.append(
         '================================================')
-    postData(fname+'总计'+str(len(resultSet))+'.txt')
+    # postData(fname+'总计'+str(len(resultSet))+'.txt')
 
 
 # 多txt求并 叠加
@@ -193,7 +193,7 @@ def mutilBind():
     root.destroy()
     root.mainloop()
     os.startfile(fname+'总计'+str(len(resultSet))+bonusStr+'.txt')
-    postData(fname+'总计'+str(len(resultSet))+'.txt')
+    # postData(fname+'总计'+str(len(resultSet))+'.txt')
 
 
 # 多txt求差 目标
@@ -303,12 +303,26 @@ def climpPage(page):
     numbers = []
     string = []
     for i in range(0, len(tag)):
-        if len(string) == 4:
+        if len(string) == 5:
             numbers.append(''.join(string))
             string = []
+            string.append(tag[i].string)
         else:
             string.append(tag[i].string)
     return numbers
+
+
+def exportList2Txt(filename, dataList):
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return
+    file = open(filePath+'\\'+filename+'_' +
+                str(len(dataList))+'.txt', 'w')
+    file.write(','.join(list(dataList)))
+    file.flush()
+    file.close()
+    os.startfile(filePath)
+# 输出文本
 
 
 def exportTxt(filename, dataSet):
@@ -330,7 +344,7 @@ def exportTxt(filename, dataSet):
     file.write(','.join(list(dataSet)))
     file.flush()
     file.close()
-    postData(filePath+'\\'+filename+'_'+str(len(dataSet))+'.txt')
+    # postData(filePath+'\\'+filename+'_'+str(len(dataSet))+'.txt')
     os.startfile(filePath)
 # 输出文本
 
@@ -347,8 +361,8 @@ def exportTxt3(filePath, filename, dataStr):
     file.write(dataStr)
     file.flush()
     file.close()
-    postData(filePath+'\\'+filename+'_'+is_exist +
-             '_'+str(len(dataSet))+'.txt')
+    # postData(filePath+'\\'+filename+'_'+is_exist +
+    #          '_'+str(len(dataSet))+'.txt')
 
 # 随机算法
 
@@ -678,14 +692,15 @@ def climb():
         else:
             if page > maxPage:
                 maxPage = page
-    totalSet = set()
+    totalList = []
     ideaCount = 0
-    for i in range(1, 22):
+    inputMaxPage = int(enterbox("输入最大页数?（最大"+str(maxPage)+"）", '确认', "20"))
+    for i in range(1, inputMaxPage+1):
         numbers = climpPage(i)
         for item in numbers:
             ideaCount += 1
-            totalSet.add(item)
-    exportTxt("往届一共"+str(ideaCount)+",去重后", totalSet)
+            totalList.append(item)
+    exportList2Txt('爬取结果', dataList=totalList)
 
 
 def loadRecent():
@@ -707,9 +722,10 @@ def loadRecent():
     for i in range(0, len(tag)):
         if len(numbers) == 7:
             break
-        if len(string) == 4:
+        if len(string) == 5:
             numbers.append(''.join(string))
             string = []
+            string.append(tag[i].string)
         else:
             string.append(tag[i].string)
     pass
@@ -1107,6 +1123,57 @@ def addSourceCheck():
         '计算完成')
     os.startfile(filePath)
     #
+    pass
+
+
+#  批量文件夹同序叠加
+def mutilDirAdd():
+    ui.textBrowser.append('计算&产生数据中......')
+    helperVersion = ccbox('选择版本', '提示', ('4位置', '5位置'))
+    #
+    root = Tk()
+    rootDir = filedialog.askdirectory()
+    dirFileList = []
+    for _root, dirs, files in os.walk(rootDir):
+        if len(files) > 0:
+            fileList = []
+            for file in files:
+                fileList.append(os.path.join(_root, file))
+                pass
+            dirFileList.append(fileList)
+        pass
+    dirCount = len(dirFileList)
+    fileCount = len(dirFileList[0])
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        ui.textBrowser.append('取消')
+        return
+    eachFileDataCount = enterbox("每个文件多少数据?", '确认', "0")
+    if eachFileDataCount == None:
+        ui.textBrowser.append('取消')
+        return
+    eachFileDataCount = int(eachFileDataCount)
+    #
+    index = 1
+    for i in range(0, fileCount):
+        wsList = []
+        for j in range(0, dirCount):
+            wb = openpyxl.load_workbook(dirFileList[j][i])
+            sheetsNames = wb.sheetnames
+            wsList.append(wb[sheetsNames[0]])
+        #
+        if helperVersion == True:
+            excelHelper.readWbFromIndexAddDir(
+                wsList, eachFileDataCount, filePath, index,4)
+        else:
+            excelHelper.readWbFromIndexAddDir(
+                wsList, eachFileDataCount, filePath, index,5)
+        index += 1
+
+    ui.textBrowser.append('计算完成')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
     pass
 
 
@@ -1565,10 +1632,10 @@ def excelMissing():
 if __name__ == '__main__':
 
     #
-    passWord = passwordbox("请输入启动密码", '确认', "")
-    nowDate = time.strftime("%Y%m%d", time.localtime())
-    if passWord != nowDate+'lin' and passWord != 'uercal':
-        exit()
+    # passWord = passwordbox("请输入启动密码", '确认', "")
+    # nowDate = time.strftime("%Y%m%d", time.localtime())
+    # if passWord != nowDate+'lin' and passWord != 'uercal':
+    #     exit()
 
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -1631,10 +1698,15 @@ if __name__ == '__main__':
     ui.actionmainCheck.triggered.connect(mainCheck)
     # 交叉
     ui.actionSource.triggered.connect(sourceCheck)
-    # 累加
-    ui.actionAddSource.triggered.connect(addSourceCheck)
+
+    # --------
     # 批量累加
     ui.actionmutilAdd.triggered.connect(mutilAdd)
+    # 累加
+    ui.actionAddSource.triggered.connect(addSourceCheck)
+    # 批量文件夹同序叠加
+    ui.actionMutilDirAdd.triggered.connect(mutilDirAdd)
+
     # ------
     # 批量单区间
     ui.actionExcelSet.triggered.connect(excelSet)
