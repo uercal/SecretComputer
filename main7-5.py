@@ -29,6 +29,7 @@ import config
 #
 import helper
 import excel5Helper as excelHelper
+import txtHelper
 
 # 基础类
 
@@ -69,6 +70,11 @@ def basicTxtSet(method):
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
+
+    # 位数筛选 开启判定
+    if configuration['isRange'] == 1:
+        resultSet = txtHelper.positionRangeFilter(resultSet)
+
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
@@ -129,6 +135,11 @@ def check():
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
+
+    # 位数筛选 开启判定
+    if configuration['isRange'] == 1:
+        resultSet = txtHelper.positionRangeFilter(resultSet)
+
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
@@ -178,6 +189,10 @@ def mutilBind():
     with open("setting.json", "r") as f:
         setting = f.read()
     configuration = json.loads(setting)
+    # 位数筛选 开启判定
+    if configuration['isRange'] == 1:
+        resultSet = txtHelper.positionRangeFilter(resultSet)
+
     rightNumber = configuration['rightNumber']
     isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
     if isCheckRight == True:
@@ -289,9 +304,60 @@ def reverseCheck():
     pass
 
 
+# txt 批量随机抽取txt
+def randomMutilTxt():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('批量抽取txt.........')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return
+    # 输入数量
+    fileCount = int(enterbox("随机取多少数据进行交集?", '确认', "1"))
+    if fileCount <= 0:
+        ui.textBrowser.append('交集数据数不能为0')
+        return
+    handleCount = int(enterbox("目标交集数量?", '确认', "0"))
+    # 判断命中
+    isCheckRight = ccbox('是否判断命中？', '提示', ('是', '否'))
+    with open("setting.json", "r") as f:
+        setting = f.read()
+    configuration = json.loads(setting)
+    rightNumber = configuration['rightNumber'] if isCheckRight == True else 0
+    # completedSet = helper.init4NumbersSet if version == True else helper.init5NumbersSet()
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return
+    cur = list(cur)
+    # 获得抽取后的path数组
+    allPickList = list(combinations(cur, fileCount))
+    #
+    if handleCount == 0:
+        ui.textBrowser.append('即将输出所有结果('+str(len(allPickList))+')')
+        handleCount = len(allPickList)
+
+    for i in range(0, handleCount):
+        pathList = random.choice(allPickList)
+        allPickList.remove(pathList)
+        # handler
+        labelList = []
+        for m in range(0, len(pathList)):
+            lastP = pathList[m].rfind('/')+1
+            labelList.append(pathList[m][lastP:-4])
+        ui.textBrowser.append(
+            '抽取结果'+str(i+1)+':['+' , '.join(labelList)+']')
+        txtHelper.mutilTxtCheck(
+            pathList, filePath, '随机抽取交集'+str(i+1), rightNumber, isRange=configuration['isRange'])
+    root.destroy()
+    root.mainloop()
+    ui.textBrowser.append('计算完成！')
+    os.startfile(filePath)
+    pass
+
+
 # 拓展类（爬虫
-
-
 def climpPage(page):
     ui.textBrowser.append("爬取第"+str(page)+"页数据中。。。。")
     url = 'http://caipiao.eastmoney.com/pub/Result/History/pl5?page='+str(page)
@@ -566,6 +632,8 @@ def txtDiyPickGroupInter():
     root.withdraw()
     ui.textBrowser.append('读取集合，开始计算.......')
     curDir = diropenbox('目标目录')
+    if curDir == None:
+        return False
     cur = []
     for _root, dirs, files in os.walk(curDir):
         for file in files:
@@ -1164,10 +1232,10 @@ def mutilDirAdd():
         #
         if helperVersion == True:
             excelHelper.readWbFromIndexAddDir(
-                wsList, eachFileDataCount, filePath, index,4)
+                wsList, eachFileDataCount, filePath, index, 4)
         else:
             excelHelper.readWbFromIndexAddDir(
-                wsList, eachFileDataCount, filePath, index,5)
+                wsList, eachFileDataCount, filePath, index, 5)
         index += 1
 
     ui.textBrowser.append('计算完成')
@@ -1630,12 +1698,15 @@ def excelMissing():
 
 
 if __name__ == '__main__':
-
     #
-    # passWord = passwordbox("请输入启动密码", '确认', "")
-    # nowDate = time.strftime("%Y%m%d", time.localtime())
-    # if passWord != nowDate+'lin' and passWord != 'uercal':
-    #     exit()
+    _config = configparser.ConfigParser()
+    _config.read('./pwd.ini')
+    #
+    nowDate = time.strftime("%Y%m%d", time.localtime())
+    if _config['DEFAULT'].get('SECRET') == None or _config['DEFAULT']['SECRET'] != nowDate+'lin':
+        passWord = passwordbox("请输入启动密码", '确认', "")
+        if passWord != nowDate+'lin' and passWord != 'uercal':
+            exit()
 
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -1675,6 +1746,7 @@ if __name__ == '__main__':
     ui.actioncheck.triggered.connect(check)
     ui.actionBind.triggered.connect(mutilBind)
     ui.actionmutilCha.triggered.connect(mutilCha)
+    ui.actionrandomMutilTxt.triggered.connect(randomMutilTxt)
 
     # 逆序算法
     ui.actionreverseResult.triggered.connect(reverseCheck)

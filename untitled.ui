@@ -108,6 +108,7 @@
      <addaction name="actionrandomPickBind"/>
      <addaction name="actionrandomGroupBind"/>
      <addaction name="actiondiyPIckGroupInter"/>
+     <addaction name="actionrandomMutilTxt"/>
      <addaction name="separator"/>
     </widget>
     <addaction name="menutxt"/>
@@ -280,6 +281,11 @@
   <action name="actionMutilDirAdd">
    <property name="text">
     <string>批量文件夹同序叠加</string>
+   </property>
+  </action>
+  <action name="actionrandomMutilTxt">
+   <property name="text">
+    <string>批量随机抽取求交</string>
    </property>
   </action>
  </widget>
