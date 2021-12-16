@@ -61,3 +61,43 @@ def positionRangeFilter(resultSet: set):
                 continue
             newSet.add(resultList[i])
     return newSet
+
+
+
+
+# 单双文件 交并处理
+def filesSetHandler(txtPathList, filePath,type='intersect'):
+    if len(txtPathList)>2 or len(txtPathList)==0:
+        return False
+    resultSet = set()
+    if len(txtPathList)==2:
+        pass
+        f1 = open(txtPathList[0],'r')
+        f2 = open(txtPathList[1],'r')
+        f1Set = set(f1.read().split(','))        
+        f2Set = set(f2.read().split(','))
+        for i in range(0,len(f1Set)):
+            for j in range(0,len(f2Set)):
+                if type=='intersect':
+                    target = set(f1Set[i]).intersection(set(f2Set[j])) 
+                if type=='union':
+                    target = set(f1Set[i]).union(set(f2Set[j]))
+                resultSet.add(''.join(list(target).sort()))        
+    else:
+        f = open(txtPathList[0],'r')
+        fSet = set(f.read().split(','))
+        for i in range(0,len(fSet)-1):
+            for j in range(i+1,len(fSet)):
+                if type=='intersect':
+                    target = set(fSet[i]).intersection(set(fSet[j])) 
+                if type=='union':
+                    target = set(fSet[i]).union(set(fSet[j]))
+                resultSet.add(''.join(list(target).sort()))                   
+     # 位数筛选 开启判定    
+    bonusStr = '交集' if type=='intersect' else '并集'
+    file = open(filePath+'\\'+ '_' +
+                str(len(resultSet))+'_'+bonusStr+'.txt', 'w')
+    file.write(','.join(list(resultSet)))
+    file.flush()
+    file.close()
+    pass
