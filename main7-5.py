@@ -356,6 +356,76 @@ def randomMutilTxt():
     os.startfile(filePath)
     pass
 
+#  multiPositionHandler
+def multiPositionHandler():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('选取txt文件.........')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])
+    if cur == '':
+        ui.textBrowser.append('取消')
+        return            
+    if len(cur) > 2:
+        ui.textBrowser.append('最多只能选取1-2个文件')
+        return 
+    # 判断命中
+    type = ccbox('处理算法', '提示', ('交集', '并集'))
+    handleType = 'intersect' if type == True else 'union'
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return    
+    if len(cur) == 1 :
+        handleNumber = int(enterbox("多少个数据进行处理（不能低于2）?", '确认', "2"))
+    else:
+        handleNumber = 0   
+    c = txtHelper.filesSetHandler(cur,filePath,handleType,handleNumber)
+    if c == False:
+        return c
+    ui.textBrowser.append('计算完成！')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    pass
+
+
+# findEmptyHandler
+def findEmptyHandler():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('选取txt文件.........')
+    cur = filedialog.askopenfilename(filetypes=[('text files', '.txt')])
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return        
+    handleNumber = int(enterbox("多少个数据进行处理（不能低于3）?", '确认', "3"))
+    txtHelper.findEmptySet(cur,filePath,handleNumber)
+    ui.textBrowser.append('计算完成！')
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    pass
+
+# singleNumberRate
+def singleNumberRate():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('选取txt文件.........')
+    cur = filedialog.askopenfilename(filetypes=[('text files', '.txt')])         
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return     
+    counterList = txtHelper.singleNumberRate(cur,filePath)
+    ui.textBrowser.append('计算完成！')
+    for i in range(0,len(counterList)):
+        ui.textBrowser.append(counterList[i])                    
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()    
+    pass
+
 
 # 拓展类（爬虫
 def climpPage(page):
@@ -1747,7 +1817,9 @@ if __name__ == '__main__':
     ui.actionBind.triggered.connect(mutilBind)
     ui.actionmutilCha.triggered.connect(mutilCha)
     ui.actionrandomMutilTxt.triggered.connect(randomMutilTxt)
-
+    ui.actionmultiPositionHandler.triggered.connect(multiPositionHandler)
+    ui.actionfindEmpty.triggered.connect(findEmptyHandler)
+    ui.actionsingleNumberRate.triggered.connect(singleNumberRate)
     # 逆序算法
     ui.actionreverseResult.triggered.connect(reverseCheck)
 

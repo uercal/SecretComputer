@@ -8,7 +8,11 @@ Description: file content
 
 # 多path txt交集
 import json
+from itertools import combinations
+from collections import Counter
 
+import functools
+import datetime
 
 def mutilTxtCheck(txtPathList, filePath, fileLabel, rightNumber=0, isRange=0):
     resultSet = set()
@@ -66,7 +70,7 @@ def positionRangeFilter(resultSet: set):
 
 
 # 单双文件 交并处理
-def filesSetHandler(txtPathList, filePath,type='intersect'):
+def filesSetHandler(txtPathList, filePath,type='intersect',handleNumber=0):
     if len(txtPathList)>2 or len(txtPathList)==0:
         return False
     resultSet = set()
@@ -74,30 +78,165 @@ def filesSetHandler(txtPathList, filePath,type='intersect'):
         pass
         f1 = open(txtPathList[0],'r')
         f2 = open(txtPathList[1],'r')
-        f1Set = set(f1.read().split(','))        
-        f2Set = set(f2.read().split(','))
+        f1Set = f1.read().split(',')      
+        f2Set = f2.read().split(',')
         for i in range(0,len(f1Set)):
             for j in range(0,len(f2Set)):
                 if type=='intersect':
                     target = set(f1Set[i]).intersection(set(f2Set[j])) 
                 if type=='union':
                     target = set(f1Set[i]).union(set(f2Set[j]))
-                resultSet.add(''.join(list(target).sort()))        
-    else:
+                if len(target) == 0:
+                    continue
+                targetList = list(target)                
+                targetList.sort()                
+                resultSet.add(''.join(targetList))                   
+    else:        
+        if handleNumber < 2:
+            return False        
         f = open(txtPathList[0],'r')
-        fSet = set(f.read().split(','))
-        for i in range(0,len(fSet)-1):
-            for j in range(i+1,len(fSet)):
+        fSet = f.read().split(',')        
+        fList = list(combinations(fSet,handleNumber))        
+
+        for i in range(0,len(fList)):
+            itemList = fList[i]
+            targetSet = set()
+            for j in range(0,handleNumber):
+                item = itemList[j]
+                if '\n' in item:
+                    item = item.replace("\n","")
                 if type=='intersect':
-                    target = set(fSet[i]).intersection(set(fSet[j])) 
-                if type=='union':
-                    target = set(fSet[i]).union(set(fSet[j]))
-                resultSet.add(''.join(list(target).sort()))                   
+                    if j==0:
+                        targetSet = set(item)
+                    else:
+                        targetSet = set(item).intersection(targetSet) 
+                if type=='union':                    
+                    targetSet = set(item).union(targetSet)
+            if len(targetSet)!=0:                                
+                targetList = list(targetSet)                
+                targetList.sort()                
+                resultSet.add(''.join(targetList))                              
      # 位数筛选 开启判定    
     bonusStr = '交集' if type=='intersect' else '并集'
-    file = open(filePath+'\\'+ '_' +
-                str(len(resultSet))+'_'+bonusStr+'.txt', 'w')
+    timeStr = datetime.datetime.now().strftime('%H%M')
+    file = open(filePath+'\\'+ str(handleNumber)+'个数据处理_' +
+                str(len(resultSet))+'数位'+bonusStr+'_'+timeStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
     file.close()
     pass
+
+
+
+# 找空集  
+def findEmptySet(txtPath, filePath,handleNumber=3):         
+    f = open(txtPath,'r')
+    fSet = f.read().split(',')
+    fList = list(combinations(fSet, handleNumber))    
+    resultList = []
+    rateList = []
+    for i in range(0,len(fList)):
+        _itemList = fList[i]
+        itemList = []
+        for m in range(0,len(_itemList)):
+            _item = _itemList[m]
+            if '\n' in _item:
+                _item = _item.replace("\n","")
+            itemList.append(_item)                    
+
+        targetSet = set()
+        for j in range(0,handleNumber):
+            item = itemList[j]                 
+            if j==0:
+                targetSet = set(item)
+            else:
+                targetSet = set(item).intersection(targetSet) 
+        
+        if len(targetSet)==0:
+            targetList = list(itemList)                
+            targetList.sort()                
+            resultList.append('/'.join(targetList))                              
+            for k in range(0,handleNumber):
+                rateList.append(itemList[k])
+    
+    resultList = set(resultList)
+    resultList = sorted(resultList,key=functools.cmp_to_key(cmp))
+    resultList = list(resultList)
+    file = open(filePath+'\\'+ str(handleNumber)+'个数据交空处理_' +
+                str(len(resultList))+'.txt', 'w')
+    file.write('\n'.join(resultList))
+    file.flush()
+    file.close()
+    # 查找resultList 频次
+    counterRate = Counter(rateList).most_common()
+    counterList = []
+    for k in range(0,len(counterRate)):
+        numStr = str(counterRate[k][0])
+        countStr = str(counterRate[k][1])
+        counterList.append(numStr+'（'+countStr+'）')
+
+    file = open(filePath+'\\'+ str(handleNumber)+'交空频次_' +
+                str(len(counterList))+'.txt', 'w')
+    file.write('\n'.join(counterList))
+    file.flush()
+    file.close()
+    
+
+    pass
+
+
+
+# 数列 单数频次
+def singleNumberRate(txtPath,filePath):
+    f = open(txtPath,'r')
+    fList = f.read().split(',')
+    result = {'0':0,'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0}
+    for i in range(0,len(fList)):
+        for m in range(0,len(fList[i])):
+            item = str(fList[i][m])                        
+            if item =='\n':
+                continue
+            if '\n' in item:
+                item.replace("\n","")            
+            result[item] = result[item] + 1
+        pass
+    counterRate = Counter(result).most_common()
+    counterList = []
+    for k in range(0,len(counterRate)):
+        numStr = str(counterRate[k][0])
+        countStr = str(counterRate[k][1])        
+        counterList.append(numStr+'（'+countStr+'）')
+
+
+    timeStr = datetime.datetime.now().strftime('%H%M')
+    print(timeStr)
+    file = open(filePath+'\\'+'单数频次_' +
+                str(len(counterList))+'_'+timeStr+'.txt', 'w')
+    file.write('\n'.join(counterList))
+    file.flush()
+    file.close()
+    return counterList    
+
+
+
+
+
+def cmp(x:str,y:str):
+    a= x.split('/')
+    b= y.split('/')
+    newStrNum1 = a[0] + b[0]
+    newStrNum2 = b[0] + a[0]
+    if newStrNum2 > newStrNum1:
+        return -1
+    elif newStrNum2 == newStrNum1:
+        _newStrNum1 = a[1] + b[1]
+        _newStrNum2 = b[1] + a[1]
+        if _newStrNum2 > _newStrNum1:
+            return -1
+        elif _newStrNum2 == _newStrNum1:                        
+            return 0
+        else:
+            return 1        
+    else:
+        return 1
+

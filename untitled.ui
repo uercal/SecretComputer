@@ -62,6 +62,9 @@
      <addaction name="actionBind"/>
      <addaction name="actionmutilCha"/>
      <addaction name="actionreverseResult"/>
+     <addaction name="actionmultiPositionHandler"/>
+     <addaction name="actionfindEmpty"/>
+     <addaction name="actionsingleNumberRate"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -286,6 +289,21 @@
   <action name="actionrandomMutilTxt">
    <property name="text">
     <string>批量随机抽取求交</string>
+   </property>
+  </action>
+  <action name="actionmultiPositionHandler">
+   <property name="text">
+    <string>单双文件数位处理</string>
+   </property>
+  </action>
+  <action name="actionfindEmpty">
+   <property name="text">
+    <string>组合找空集</string>
+   </property>
+  </action>
+  <action name="actionsingleNumberRate">
+   <property name="text">
+    <string>单数频次</string>
    </property>
   </action>
  </widget>
