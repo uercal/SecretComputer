@@ -240,3 +240,48 @@ def cmp(x:str,y:str):
     else:
         return 1
 
+
+
+def expectNum(a):
+    allSet = set(range(0,10))
+    l = allSet - set([a])  
+    allPickList = list(combinations(l, 2))
+    return allPickList    
+
+
+
+
+if __name__ == '__main__':    
+    
+    totalSet = set()
+    for i in range(0,10):
+        pickList = expectNum(i)
+        # iiab
+        for j in range(0,len(pickList)):
+            num1 = pickList[j][0]
+            num2 = pickList[j][1]
+            totalSet.add(str(i)+str(i)+str(num1)+str(num2))
+            totalSet.add(str(i)+str(i)+str(num2)+str(num1))
+        # abii
+            totalSet.add(str(num1)+str(num2)+str(i)+str(i))
+            totalSet.add(str(num2)+str(num1)+str(i)+str(i))
+        # iabi
+            totalSet.add(str(i)+str(num1)+str(num2)+str(i))
+            totalSet.add(str(i)+str(num2)+str(num1)+str(i))
+        # aiib
+            totalSet.add(str(num1)+str(i)+str(i)+str(num2))
+            totalSet.add(str(num2)+str(i)+str(i)+str(num1))
+        # iaib
+            totalSet.add(str(i)+str(num1)+str(i)+str(num2))
+            totalSet.add(str(i)+str(num2)+str(i)+str(num1))
+        # aibi
+            totalSet.add(str(num1)+str(i)+str(num2)+str(i))
+            totalSet.add(str(num2)+str(i)+str(num1)+str(i))            
+        pass
+    l = list(totalSet)
+    l.sort()
+    file = open('F:\\shuangshu.txt', 'w')
+    file.write(','.join(l))
+    file.flush()
+    file.close()
+    pass
