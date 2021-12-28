@@ -399,7 +399,10 @@ def findEmptyHandler():
     filePath = diropenbox('结果存放目录')
     if filePath == None:
         return        
-    handleNumber = int(enterbox("多少个数据进行处理（不能低于3）?", '确认', "3"))
+    handleNumber = enterbox("多少个数据进行处理（不能低于3）?", '确认', "3")
+    if handleNumber == None:
+        return 
+    handleNumber = int(handleNumber)
     txtHelper.findEmptySet(cur,filePath,handleNumber)
     ui.textBrowser.append('计算完成！')
     os.startfile(filePath)

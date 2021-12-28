@@ -120,7 +120,7 @@ def filesSetHandler(txtPathList, filePath,type='intersect',handleNumber=0):
     bonusStr = '交集' if type=='intersect' else '并集'
     timeStr = datetime.datetime.now().strftime('%H%M')
     file = open(filePath+'\\'+ str(handleNumber)+'个数据处理_' +
-                str(len(resultSet))+'数位'+bonusStr+'_'+timeStr+'.txt', 'w')
+                str(len(resultSet))+'数位'+bonusStr+'_t_'+timeStr+'.txt', 'w')
     file.write(','.join(list(resultSet)))
     file.flush()
     file.close()
@@ -162,8 +162,9 @@ def findEmptySet(txtPath, filePath,handleNumber=3):
     resultList = set(resultList)
     resultList = sorted(resultList,key=functools.cmp_to_key(cmp))
     resultList = list(resultList)
+    timeStr = datetime.datetime.now().strftime('%H%M')
     file = open(filePath+'\\'+ str(handleNumber)+'个数据交空处理_' +
-                str(len(resultList))+'.txt', 'w')
+                str(len(resultList))+'_t_'+timeStr+'.txt', 'w')
     file.write('\n'.join(resultList))
     file.flush()
     file.close()
@@ -176,7 +177,7 @@ def findEmptySet(txtPath, filePath,handleNumber=3):
         counterList.append(numStr+'（'+countStr+'）')
 
     file = open(filePath+'\\'+ str(handleNumber)+'交空频次_' +
-                str(len(counterList))+'.txt', 'w')
+                str(len(counterList))+'_t_'+timeStr+'.txt', 'w')
     file.write('\n'.join(counterList))
     file.flush()
     file.close()
@@ -209,9 +210,8 @@ def singleNumberRate(txtPath,filePath):
 
 
     timeStr = datetime.datetime.now().strftime('%H%M')
-    print(timeStr)
     file = open(filePath+'\\'+'单数频次_' +
-                str(len(counterList))+'_'+timeStr+'.txt', 'w')
+                str(len(counterList))+'_t_'+timeStr+'.txt', 'w')
     file.write('\n'.join(counterList))
     file.flush()
     file.close()
