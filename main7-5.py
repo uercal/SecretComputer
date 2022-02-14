@@ -5,7 +5,7 @@ from typing import ItemsView
 from PyQt5.QtCore import right
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem
 from tkinter import Tk, filedialog
-from easygui import fileopenbox, diropenbox, ccbox, enterbox, passwordbox
+from easygui import fileopenbox, diropenbox, ccbox, enterbox, passwordbox,multenterbox
 import os
 import configparser
 import json
@@ -430,6 +430,40 @@ def singleNumberRate():
     pass
 
 
+# 单双重 数位限制
+def danshuangPosition():
+    positionType = ccbox('选择类型', '提示', ('单重', '双重'))    
+    if positionType == True:
+        file = 'position-dan.txt'
+    else:
+        file = 'position-shuang.txt'
+    with open(file,'r') as f:
+        positionSet = set(f.read().split(','))
+    # 
+    actionType = ccbox('输入类型', '提示', ('导入复式txt', '输入位数'))
+    if actionType == True:
+        root = Tk()
+        root.withdraw()        
+        cur = filedialog.askopenfilename(filetypes=[('text files', '.txt')])   
+        with open(cur,'r') as f:
+            targetList = list(f.read().split(','))
+    else:
+        fieldNames = ["千位", "百位", "十位", "各位"]
+        targetList = multenterbox("输入各个位限制数据","位数限制",fieldNames)
+        if targetList == None or len(targetList) != 4:
+            ui.textBrowser.append('位数输入错误')
+            return False            
+        else:
+            targetList = [','.join(targetList)]
+    # action txt export    
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return
+    txtHelper.positionNumberInterset(targetList,filePath,positionSet,actionType,positionType)
+    ui.textBrowser.append('计算完成')    
+    pass
+
+
 # 拓展类（爬虫
 def climpPage(page):
     ui.textBrowser.append("爬取第"+str(page)+"页数据中。。。。")
@@ -719,8 +753,8 @@ def txtDiyPickGroupInter():
     #
     indexList = list(range(0, totalCount))
     #
-    randomCount = int(enterbox("随机多少数据进行一次交集?", '确认', "0"))
     handleCount = int(enterbox("重复运算多少次?", '确认', "0"))
+    randomCount = int(enterbox("随机多少数据进行一次交集?", '确认', "0"))
     # handler begin
     filePath = diropenbox('结果存放目录')
     if filePath == None:
@@ -1779,7 +1813,7 @@ if __name__ == '__main__':
     if _config['DEFAULT'].get('SECRET') == None or _config['DEFAULT']['SECRET'] != nowDate+'lin':
         passWord = passwordbox("请输入启动密码", '确认', "")
         if passWord != nowDate+'lin' and passWord != 'uercal':
-            exit()
+            exit()            
 
     with open("setting.json", "r") as f:
         setting = f.read()
@@ -1823,6 +1857,7 @@ if __name__ == '__main__':
     ui.actionmultiPositionHandler.triggered.connect(multiPositionHandler)
     ui.actionfindEmpty.triggered.connect(findEmptyHandler)
     ui.actionsingleNumberRate.triggered.connect(singleNumberRate)
+    ui.actiondanshuangPosition.triggered.connect(danshuangPosition)
     # 逆序算法
     ui.actionreverseResult.triggered.connect(reverseCheck)
 

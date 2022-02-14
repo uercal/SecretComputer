@@ -5,9 +5,10 @@ block_cipher = None
 
 
 a = Analysis(['main7-5.py'],
-             pathex=[],
+             pathex=['E:\\demo-2021\\SecretComputer'],
              binaries=[],
-             datas=[],
+             datas=[('E:\\demo-2021\\SecretComputer\\setting.json','.'),('E:\\demo-2021\\SecretComputer\\pwd.ini','.'),
+             ('E:\\demo-2021\\SecretComputer\\position-dan.txt','.'),('E:\\demo-2021\\SecretComputer\\position-shuang.txt','.')],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},

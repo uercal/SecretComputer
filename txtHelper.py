@@ -13,6 +13,9 @@ from collections import Counter
 
 import functools
 import datetime
+from ntpath import join
+from os import fdopen
+import os
 
 def mutilTxtCheck(txtPathList, filePath, fileLabel, rightNumber=0, isRange=0):
     resultSet = set()
@@ -251,37 +254,92 @@ def expectNum(a):
 
 
 
-if __name__ == '__main__':    
+# if __name__ == '__main__':    
     
-    totalSet = set()
-    for i in range(0,10):
-        pickList = expectNum(i)
-        # iiab
-        for j in range(0,len(pickList)):
-            num1 = pickList[j][0]
-            num2 = pickList[j][1]
-            totalSet.add(str(i)+str(i)+str(num1)+str(num2))
-            totalSet.add(str(i)+str(i)+str(num2)+str(num1))
-        # abii
-            totalSet.add(str(num1)+str(num2)+str(i)+str(i))
-            totalSet.add(str(num2)+str(num1)+str(i)+str(i))
-        # iabi
-            totalSet.add(str(i)+str(num1)+str(num2)+str(i))
-            totalSet.add(str(i)+str(num2)+str(num1)+str(i))
-        # aiib
-            totalSet.add(str(num1)+str(i)+str(i)+str(num2))
-            totalSet.add(str(num2)+str(i)+str(i)+str(num1))
-        # iaib
-            totalSet.add(str(i)+str(num1)+str(i)+str(num2))
-            totalSet.add(str(i)+str(num2)+str(i)+str(num1))
-        # aibi
-            totalSet.add(str(num1)+str(i)+str(num2)+str(i))
-            totalSet.add(str(num2)+str(i)+str(num1)+str(i))            
-        pass
-    l = list(totalSet)
-    l.sort()
-    file = open('F:\\shuangshu.txt', 'w')
-    file.write(','.join(l))
+#     totalSet = set()
+#     for i in range(0,10):
+#         pickList = expectNum(i)
+#         # iiab
+#         for j in range(0,len(pickList)):
+#             num1 = pickList[j][0]
+#             num2 = pickList[j][1]
+#             totalSet.add(str(i)+str(i)+str(num1)+str(num2))
+#             totalSet.add(str(i)+str(i)+str(num2)+str(num1))
+#         # abii
+#             totalSet.add(str(num1)+str(num2)+str(i)+str(i))
+#             totalSet.add(str(num2)+str(num1)+str(i)+str(i))
+#         # iabi
+#             totalSet.add(str(i)+str(num1)+str(num2)+str(i))
+#             totalSet.add(str(i)+str(num2)+str(num1)+str(i))
+#         # aiib
+#             totalSet.add(str(num1)+str(i)+str(i)+str(num2))
+#             totalSet.add(str(num2)+str(i)+str(i)+str(num1))
+#         # iaib
+#             totalSet.add(str(i)+str(num1)+str(i)+str(num2))
+#             totalSet.add(str(i)+str(num2)+str(i)+str(num1))
+#         # aibi
+#             totalSet.add(str(num1)+str(i)+str(num2)+str(i))
+#             totalSet.add(str(num2)+str(i)+str(num1)+str(i))            
+#         pass
+#     l = list(totalSet)
+#     l.sort()
+#     file = open('E:\\双数_'+str(len(totalSet))+'.txt', 'w')
+#     file.write(','.join(l))
+#     file.flush()
+#     file.close()
+
+
+
+def positionTxtCountHandler(txtPath,filePath):
+    f = open(txtPath,'r')
+    fList = f.read().split(',')    
+    fDict = {'1':[],'2':[],'3':[],'4':[],'5':[],'6':[],'7':[],'8':[],'9':[],'10':[]}
+    for i in range(0,len(fList)):    
+        if '\n' in fList[i]:
+            fList[i] = fList[i].replace('\n','')
+
+        length = len(fList[i])        
+        fDict[str(length)].append(fList[i])
+        
+    result = []
+    for j in fDict:
+        if len(fDict[j]) != 0:
+            result.append('['+j+']'+','.join(fDict[j]))
+    
+
+    file = open(filePath+'\\'+'数位排序_' +
+                '.txt', 'w')
+    file.write('\n'.join(result))
     file.flush()
-    file.close()
-    pass
+    file.close()        
+
+
+
+# 位数限制 交集
+def positionNumberInterset(targetList:list[str],filePath:str,positionSet:set,actionType:bool,positionType:bool):    
+    positionStr = '单重' if positionType == True else '双重'
+    for i in range(0,len(targetList)):
+        resultList = []
+        if actionType == True:
+            # txt
+            itemStr = targetList[i]
+            for item in positionSet:
+                if item[0] in itemStr and item[1] in itemStr and item[2] in itemStr and item[3] in itemStr:
+                    resultList.append(item)
+            file = open(filePath+'\\'+'位数限制计算'+positionStr+'_'+'第'+str(i+1)+'个结果_'+str(len(resultList))+'.txt','w')
+            file.write(','.join(resultList))
+            file.flush()
+            file.close()
+            pass
+        else:
+            # shoudongrushu
+            itemList = list(targetList[i].split(','))
+            for item in positionSet:
+                if item[0] in itemList[0] and item[1] in itemList[1] and item[2] in itemList[2] and item[3] in itemList[3]:
+                    resultList.append(item)
+            file = open(filePath+'\\'+'位数限制计算'+positionStr+'_'+'结果_'+str(len(resultList))+'.txt','w')
+            file.write(','.join(resultList))
+            file.flush()
+            file.close()
+
+    os.startfile(filePath)

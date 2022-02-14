@@ -65,6 +65,8 @@
      <addaction name="actionmultiPositionHandler"/>
      <addaction name="actionfindEmpty"/>
      <addaction name="actionsingleNumberRate"/>
+     <addaction name="actionpositionCountOrder"/>
+     <addaction name="actiondanshuangPosition"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -304,6 +306,16 @@
   <action name="actionsingleNumberRate">
    <property name="text">
     <string>单数频次</string>
+   </property>
+  </action>
+  <action name="actionpositionCountOrder">
+   <property name="text">
+    <string>数位排序</string>
+   </property>
+  </action>
+  <action name="actiondanshuangPosition">
+   <property name="text">
+    <string>单双重数位限制</string>
    </property>
   </action>
  </widget>
