@@ -1,3 +1,4 @@
+from fileinput import filename
 from math import trunc
 import sys
 from tkinter.constants import FALSE, NONE
@@ -403,7 +404,8 @@ def findEmptyHandler():
     if handleNumber == None:
         return 
     handleNumber = int(handleNumber)
-    txtHelper.findEmptySet(cur,filePath,handleNumber)
+    fileName = txtHelper.findEmptySet(cur,filePath,handleNumber)
+    ui.textBrowser.append(fileName)
     ui.textBrowser.append('计算完成！')
     os.startfile(filePath)
     root.destroy()
@@ -463,6 +465,50 @@ def danshuangPosition():
     ui.textBrowser.append('计算完成')    
     pass
 
+# 数位限制
+def actionpositionCountOrder():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('选取txt文件.........')
+    cur = filedialog.askopenfilename(filetypes=[('text file', '.txt')])      
+    if cur == None:
+        return 
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return     
+    txtHelper.positionTxtCountHandler(cur,filePath)
+    ui.textBrowser.append('计算完成！')                  
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()    
+    pass
+    pass
+
+# 序号文件 分4组 求交并 限制
+def actionorderFileCombine():
+    root = Tk()
+    root.withdraw()
+    ui.textBrowser.append('选取序号txt文件.........')
+    cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])      
+    if cur == None:
+        return 
+    # 
+    handleNumber = int(enterbox("需要多少个交集（4的倍数，每4个合并为1个并集）?", '确认', "4"))
+    if handleNumber == None or handleNumber%4 != 0:
+        ui.textBrowser.append('参数错误！')  
+        return 
+    # 
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return     
+    txtHelper.orderFileInterBind(cur,filePath,handleNumber)
+    ui.textBrowser.append('计算完成！')                  
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()    
+    pass
 
 # 拓展类（爬虫
 def climpPage(page):
@@ -1804,8 +1850,7 @@ def excelMissing():
     pass
 
 
-if __name__ == '__main__':
-    #
+if __name__ == '__main__':    
     _config = configparser.ConfigParser()
     _config.read('./pwd.ini')
     #
@@ -1858,6 +1903,9 @@ if __name__ == '__main__':
     ui.actionfindEmpty.triggered.connect(findEmptyHandler)
     ui.actionsingleNumberRate.triggered.connect(singleNumberRate)
     ui.actiondanshuangPosition.triggered.connect(danshuangPosition)
+    ui.actionpositionCountOrder.triggered.connect(actionpositionCountOrder)
+    ui.actionorderFileCombine.triggered.connect(actionorderFileCombine)
+    
     # 逆序算法
     ui.actionreverseResult.triggered.connect(reverseCheck)
 

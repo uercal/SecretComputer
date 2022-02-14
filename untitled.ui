@@ -67,6 +67,7 @@
      <addaction name="actionsingleNumberRate"/>
      <addaction name="actionpositionCountOrder"/>
      <addaction name="actiondanshuangPosition"/>
+     <addaction name="actionorderFileCombine"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -316,6 +317,11 @@
   <action name="actiondanshuangPosition">
    <property name="text">
     <string>单双重数位限制</string>
+   </property>
+  </action>
+  <action name="actionorderFileCombine">
+   <property name="text">
+    <string>求空结果分组交并处理</string>
    </property>
   </action>
  </widget>

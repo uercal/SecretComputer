@@ -7,6 +7,7 @@ Description: file content
 
 
 # 多path txt交集
+from fileinput import filename
 import json
 from itertools import combinations
 from collections import Counter
@@ -16,6 +17,7 @@ import datetime
 from ntpath import join
 from os import fdopen
 import os
+import random
 
 def mutilTxtCheck(txtPathList, filePath, fileLabel, rightNumber=0, isRange=0):
     resultSet = set()
@@ -134,6 +136,8 @@ def filesSetHandler(txtPathList, filePath,type='intersect',handleNumber=0):
 # 找空集  
 def findEmptySet(txtPath, filePath,handleNumber=3):         
     f = open(txtPath,'r')
+    fileName = os.path.basename(txtPath)
+    fileName,fileExt = fileName.split('.')    
     fSet = f.read().split(',')
     fList = list(combinations(fSet, handleNumber))    
     resultList = []
@@ -166,8 +170,7 @@ def findEmptySet(txtPath, filePath,handleNumber=3):
     resultList = sorted(resultList,key=functools.cmp_to_key(cmp))
     resultList = list(resultList)
     timeStr = datetime.datetime.now().strftime('%H%M')
-    file = open(filePath+'\\'+ str(handleNumber)+'个数据交空处理_' +
-                str(len(resultList))+'_t_'+timeStr+'.txt', 'w')
+    file = open(filePath+'\\'+ fileName + '_'+str(handleNumber)+'个数据交空处理.txt', 'w')
     file.write('\n'.join(resultList))
     file.flush()
     file.close()
@@ -179,13 +182,10 @@ def findEmptySet(txtPath, filePath,handleNumber=3):
         countStr = str(counterRate[k][1])
         counterList.append(numStr+'（'+countStr+'）')
 
-    file = open(filePath+'\\'+ str(handleNumber)+'交空频次_' +
-                str(len(counterList))+'_t_'+timeStr+'.txt', 'w')
+    file = open(filePath+'\\'+fileName+ str(handleNumber)+'_交空频次.txt', 'w')
     file.write('\n'.join(counterList))
     file.flush()
     file.close()
-    
-
     pass
 
 
@@ -343,3 +343,59 @@ def positionNumberInterset(targetList:list[str],filePath:str,positionSet:set,act
             file.close()
 
     os.startfile(filePath)
+    pass
+
+
+# 序号文件 进行分组交并
+def orderFileInterBind(cur,filePath,handleNumber):
+    for curPath in cur:
+        orderFileHandler(curPath,filePath,handleNumber)
+        pass
+    pass
+
+
+# 序号文件 单文件处理
+def orderFileHandler(file,filePath,handleNumber):
+    fileName = os.path.basename(file)
+    fileName,fileExt = fileName.split('.')
+    # 
+    f = open(file,'r')
+    _fList = f.read().split('\n')
+    fList = [c.split('（')[0] for c in _fList]        
+    # 3个为1组 随机多组  
+    group = list(combinations(fList, 3))
+    interList = random.sample(group,handleNumber)        
+    # result 
+    result = {'0':0,'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0}
+    # 每组 平均3个顺序 求交集 得到交集 求并
+    for i in range(0,len(interList),4):
+        _list = interList[i:i+4]
+        bindList = listForInter(_list)                
+        for j in bindList:
+            result[j] = result[j] + 1
+        pass        
+     
+    counterRate = Counter(result).most_common()
+    counterList = []
+    for k in range(0,len(counterRate)):
+        numStr = str(counterRate[k][0])
+        countStr = str(counterRate[k][1])        
+        counterList.append(numStr+'（'+countStr+'）')    
+    file = open(filePath+'\\'+fileName+'_交空结果交并单数频次_.txt', 'w')
+    file.write('\n'.join(counterList))
+    file.flush()
+    file.close()
+    pass
+
+# list 集合 进行求交集
+def listForInter(list):
+    bindSet = set()
+    for item in list:
+        resultSet = set()
+        for i in range(0, len(item)):
+            if i == 0:
+                resultSet = set(item[i])
+            else:
+                resultSet = resultSet & set(item[i])            
+        bindSet = bindSet | resultSet    
+    return bindSet
