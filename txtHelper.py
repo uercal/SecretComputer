@@ -15,9 +15,12 @@ from collections import Counter
 import functools
 import datetime
 from ntpath import join
+from operator import setitem
 from os import fdopen
 import os
+from pickle import TRUE
 import random
+from turtle import right
 
 def mutilTxtCheck(txtPathList, filePath, fileLabel, rightNumber=0, isRange=0):
     resultSet = set()
@@ -134,7 +137,7 @@ def filesSetHandler(txtPathList, filePath,type='intersect',handleNumber=0):
 
 
 # 找空集  
-def findEmptySet(txtPath, filePath,handleNumber=3):         
+def findEmptySet(txtPath, filePath,handleNumber=3,returnData=False):         
     f = open(txtPath,'r')
     fileName = os.path.basename(txtPath)
     fileName,fileExt = fileName.split('.')    
@@ -168,8 +171,10 @@ def findEmptySet(txtPath, filePath,handleNumber=3):
     
     resultList = set(resultList)
     resultList = sorted(resultList,key=functools.cmp_to_key(cmp))
-    resultList = list(resultList)
-    timeStr = datetime.datetime.now().strftime('%H%M')
+    resultList = list(resultList)    
+    # returnData
+    if returnData == True:
+        return resultList
     file = open(filePath+'\\'+ fileName + '_'+str(handleNumber)+'个数据交空处理.txt', 'w')
     file.write('\n'.join(resultList))
     file.flush()
@@ -347,21 +352,23 @@ def positionNumberInterset(targetList:list[str],filePath:str,positionSet:set,act
 
 
 # 序号文件 进行分组交并
-def orderFileInterBind(cur,filePath,handleNumber):
+def orderFileInterBind(cur,filePath,handleNumber,actionType):
     for curPath in cur:
-        orderFileHandler(curPath,filePath,handleNumber)
+        orderFileHandler(curPath,filePath,handleNumber,actionType)
         pass
     pass
 
-
 # 序号文件 单文件处理
-def orderFileHandler(file,filePath,handleNumber):
+def orderFileHandler(file,filePath,handleNumber,actionType,returnData=False):
     fileName = os.path.basename(file)
     fileName,fileExt = fileName.split('.')
     # 
     f = open(file,'r')
-    _fList = f.read().split('\n')
-    fList = [c.split('（')[0] for c in _fList]        
+    if actionType == False:
+        _fList = f.read().split('\n')
+        fList = [c.split('（')[0] for c in _fList]        
+    else:
+        fList = f.read().split(',')        
     # 3个为1组 随机多组  
     group = list(combinations(fList, 3))
     interList = random.sample(group,handleNumber)        
@@ -370,17 +377,21 @@ def orderFileHandler(file,filePath,handleNumber):
     # 每组 平均3个顺序 求交集 得到交集 求并
     for i in range(0,len(interList),4):
         _list = interList[i:i+4]
-        bindList = listForInter(_list)                
+        bindList = listForInterBind(_list)                
         for j in bindList:
             result[j] = result[j] + 1
         pass        
      
     counterRate = Counter(result).most_common()
     counterList = []
+    _counterData = []
     for k in range(0,len(counterRate)):
         numStr = str(counterRate[k][0])
         countStr = str(counterRate[k][1])        
         counterList.append(numStr+'（'+countStr+'）')    
+        _counterData.append(numStr)
+    if returnData == True:
+        return _counterData
     file = open(filePath+'\\'+fileName+'_交空结果交并单数频次_.txt', 'w')
     file.write('\n'.join(counterList))
     file.flush()
@@ -388,7 +399,7 @@ def orderFileHandler(file,filePath,handleNumber):
     pass
 
 # list 集合 进行求交集
-def listForInter(list):
+def listForInterBind(list):
     bindSet = set()
     for item in list:
         resultSet = set()
@@ -399,3 +410,119 @@ def listForInter(list):
                 resultSet = resultSet & set(item[i])            
         bindSet = bindSet | resultSet    
     return bindSet
+
+
+
+
+# fiveEmptyBindInterHandler
+def fiveEmptyBindInterHandler(cur,rightNumber):
+    for curPath in cur:
+        [namePath,checkNumber,boolean] = fiveEmptyBindInterHandlerSingle(curPath,rightNumber)
+    pass
+
+# fiveEmptyBindInterHandlerSingle
+def fiveEmptyBindInterHandlerSingle(curPath,rightNumber,handleCount):
+    # 交空 60 120 180 240 300 360
+    numList = [60,120,180]
+    _numList = [240,300,360]
+    interFinal = []
+    for i in range(0,int(handleCount)):
+        interPartI = []
+        interPartII = []
+        interPartIII = []
+        interPartIV = []
+        bindListI = []
+        bindListII = []
+        for num in numList:
+            resultList = orderFileHandler(curPath,'',num,True,True)        
+            lengthRe = len(resultList)
+            interPartI.append(resultList[0:5])
+            interPartII.append(resultList[lengthRe-5:lengthRe])                 
+        for _num in _numList:
+            _resultList = orderFileHandler(curPath,'',_num,True,True)
+            _lengthRe = len(_resultList)
+            interPartIII.append(_resultList[0:5])
+            interPartIV.append(_resultList[_lengthRe-5:_lengthRe])
+        # 
+        bindListI.append(listForInter(interPartI))
+        bindListI.append(listForInter(interPartII))
+        bindListII.append(listForInter(interPartIII))
+        bindListII.append(listForInter(interPartIV))
+        # 
+        resultBindI = listForBind(bindListI)
+        resultBindII = listForBind(bindListII)   
+        interFinal.append(resultBindI)
+        interFinal.append(resultBindII)
+    # 
+    # 求总交集
+    resultSet = sorted(listForInter(interFinal))    
+    # 
+    fileName = os.path.basename(curPath)
+    fileName,fileExt = fileName.split('.')
+    # name
+    nameList = ['头','千','百','十']
+    namePath = fileName[len(fileName)-1]
+    for index in range(0,4):
+        if namePath == nameList[index]:
+            checkNumber = rightNumber[index]            
+    
+    boolean = checkNumber in resultSet
+    count = 10-len(resultSet)
+    return [namePath,resultSet,boolean,count]    
+
+
+# list for bind
+def listForBind(listData):
+    resultSet = set()
+    for item in listData:
+        if len(resultSet)==0:
+            resultSet = item
+        else:
+            resultSet = resultSet | item
+    return resultSet    
+
+# list for inter [['3', '1', '5', '2', '0'], ['3', '1', '7', '0', '4'], ['3', '5', '1', '9', '0']] 返回交集
+def listForInter(listData):
+    resultSet = set()
+    for item in listData:                
+        setItem = set(item)
+        if len(resultSet) == 0:
+            resultSet = setItem
+        else:
+            resultSet = resultSet & setItem
+    return resultSet
+
+
+
+def testDemo(filePath):
+    wanIndex = [6,9,4,1,3,7,8,0,2,5]
+    wan = [1840,1835,1826,1807,1806,1803,1791,1779,1774,1739]
+    # 
+    qianIndex = [4,1,2,0,8,9,7,5,6,3]
+    qian = [1836,1833,1824,1801,1801,1800,1798,1786,1762,1759]
+    # 
+    baiIndex = [7,0,5,6,4,9,1,3,2,8]
+    bai = [1832,1831,1823,1821,1795,1791,1787,1787,1773,1760]
+    # 
+    shiIndex = [6,0,8,5,1,7,4,3,2,9]
+    shi = [1839,1827,1821,1810,1805,1801,1791,1789,1778,1739]
+
+    result = {}
+    for w in range(0,10):
+        for q in range(0,10):
+            for b in range(0,10):
+                for s in range(0,10):
+                    number = str(wanIndex[w])+str(qianIndex[q])+str(baiIndex[b])+str(shiIndex[s])
+                    people = wan[w]*qian[q]*bai[b]*shi[s]/3000/3000/3000
+                    if people>=380 and people<=400:
+                        result[number] = people
+    result = sorted(result.items(), key = lambda kv:(kv[1], kv[0]))
+    count = len(result)
+    listData = []
+    for item in result:
+        listData.append(item[0]+' : '+str(item[1]))
+
+    file = open(filePath+'\\'+ '380到400_'+ str(count) +'_.txt', 'w')
+    file.write('\n'.join(listData))
+    file.flush()
+    file.close()

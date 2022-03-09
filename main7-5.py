@@ -22,7 +22,7 @@ import requests
 import win32com.client as win32
 import xlwt
 #
-from itertools import combinations, permutations
+from itertools import combinations, count, permutations
 #
 import window
 #
@@ -489,7 +489,8 @@ def actionpositionCountOrder():
 def actionorderFileCombine():
     root = Tk()
     root.withdraw()
-    ui.textBrowser.append('选取序号txt文件.........')
+    actionType = ccbox('输入类型', '提示', ('原始数据', '交空数据'))
+    ui.textBrowser.append('选取txt文件.........')
     cur = filedialog.askopenfilenames(filetypes=[('text files', '.txt')])      
     if cur == None:
         return 
@@ -503,12 +504,163 @@ def actionorderFileCombine():
     filePath = diropenbox('结果存放目录')
     if filePath == None:
         return     
-    txtHelper.orderFileInterBind(cur,filePath,handleNumber)
+    txtHelper.orderFileInterBind(cur,filePath,handleNumber,actionType)
     ui.textBrowser.append('计算完成！')                  
     os.startfile(filePath)
     root.destroy()
     root.mainloop()    
     pass
+
+
+# 求空原始文件 前五 后五 交并
+def fiveEmptyBindInter():
+    import os
+    root = Tk()
+    root.withdraw()    
+    # 
+    filePath = diropenbox('结果存放目录')
+    if filePath == None:
+        return     
+    txtHelper.testDemo(filePath)    
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()    
+
+    return
+
+
+    #     
+    times = 0
+    total = []
+    root = Tk()
+    root.withdraw()    
+    ui.textBrowser.append('选取文件夹.........')
+    cate = filedialog.askdirectory()    
+    _totalCount = 1
+    
+    for root,dirs,files in os.walk(cate): 
+        for dir in dirs: 
+            category = os.path.join(root,dir)            
+            for _root,_dirs,_files in os.walk(category):
+                cur = [os.path.join(_root,c) for c in _files]  
+                # ACTION
+                right = (cur[0].split('\\')[1].split(' ')[-1])                                    
+                # rightNumber = enterbox("依次输入 头千百十 ", '确认', right)
+                # handleCount = enterbox("输入运行次数 ", '确认', "30")
+                rightNumber = right
+                handleCount = 20
+                if rightNumber == None or handleCount == None:
+                    return
+                # 
+                allBoolean = True                
+                for curPath in cur:
+                    # [namePath,checkNumber,boolean,resultBind] = txtHelper.fiveEmptyBindInterHandlerSingle(curPath,rightNumber,handleCount)        
+                    # ui.textBrowser.append(namePath+'('+checkNumber+')['+','.join(resultBind)+']:'+'命中'if boolean else namePath+'('+checkNumber+')['+','.join(resultBind)+']:'+'落空')
+                    # if boolean == False:
+                    #     allBoolean = False    
+                    [namePath,resultInter,boolean,count] = txtHelper.fiveEmptyBindInterHandlerSingle(curPath,rightNumber,handleCount)
+                    _totalCount = _totalCount * count
+                    ui.textBrowser.append(namePath+'['+','.join(resultInter)+']:不符合(×包含中奖位置)'if boolean else namePath+'['+','.join(resultInter)+']:符合（√不包含中奖位置）')
+                    if boolean == True:
+                        allBoolean = False
+                # ui.textBrowser.append('计算结果：'+'全部命中' if allBoolean else '落空')            
+                if allBoolean == True:
+                    times = times+1
+                    total.append(_totalCount)
+                    ui.textBrowser.append('_totalCount:'+str(_totalCount))                                          
+                ui.textBrowser.append('计算结果：'+'全部命中' if allBoolean else '落空')            
+                ui.textBrowser.append('times:'+str(times))
+                _totalCount = 1  
+                if len(total) > 0:
+                    avgCount = sum(total)/len(total)
+                    ui.textBrowser.append('avgCount:'+str(avgCount))                     
+                #     
+    # if cur == None or cur =='':
+    #     return                 
+    pass
+
+
+# 
+def shaCodeFullCha():
+    from collections import Counter
+    root = Tk()
+    root.withdraw()
+    cur = filedialog.askopenfilename(filetypes=[('text files', '.txt')])
+    # 结果目录
+    filePath = diropenbox('结果存放目录')
+    # action handler
+    f = open(cur,'r')
+    fList = f.read().split('\n')
+    valueList = []
+    totalList = {}
+    indexSet = {}
+    for item in fList:
+        [index,value] = item.split(':')
+        totalList[value] = index
+        valueList.append(value)
+        indexSet[index] = 0
+    # 
+    group = list(combinations(valueList, 4))
+    result = {'0':0,'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0}
+    
+    resultList = []
+    indexStrList = []
+    for item in group:
+        item = [a for a in item]
+        bindItem = helper.listForBind(item)
+        bindItem = [int(b) for b in bindItem]
+        resultItem = list(set(range(0,10)) - set(bindItem))
+        if len(resultItem)>0:
+            listResult = [str(c) for c in resultItem]
+            for j in listResult:
+                result[j] = result[j]+1
+            resultStr = ','.join(listResult)
+            resultList.append(resultStr)
+        if len(resultItem)==0:
+            indexStr = ''
+            for j in item:
+                indexStr = indexStr+totalList[j]
+                indexSet[totalList[j]] = indexSet[totalList[j]]+1
+            indexStrList.append(indexStr)
+    # 
+    counterRate = Counter(result).most_common()
+    counterList = []
+    for k in range(0,len(counterRate)):
+        numStr = str(counterRate[k][0])
+        countStr = str(counterRate[k][1])        
+        counterList.append(numStr+'（'+countStr+'）')    
+    # 
+    counterIndexRate = Counter(indexSet).most_common()
+    counterIndexList = []
+    for k in range(0,len(counterIndexRate)):
+        _numStr = str(counterIndexRate[k][0])
+        _countStr = str(counterIndexRate[k][1])        
+        counterIndexList.append(_numStr+'（'+_countStr+'）')   
+
+    __file = open(filePath+'\\'+'满集结果组合.txt', 'w')
+    __file.write('\n'.join(indexStrList))
+    __file.flush()
+    __file.close()
+    ___file = open(filePath+'\\'+'满集结果频次.txt', 'w')
+    ___file.write('\n'.join(counterIndexList))
+    ___file.flush()
+    ___file.close()
+    # 
+    _file = open(filePath+'\\'+'测试差集结果频次.txt', 'w')
+    _file.write('\n'.join(counterList))
+    _file.flush()
+    _file.close()
+    # 
+    file = open(filePath+'\\'+'测试差集结果.txt', 'w')
+    file.write('\n'.join(resultList))
+    file.flush()
+    file.close()
+    os.startfile(filePath)
+    root.destroy()
+    root.mainloop()
+    pass
+
+
 
 # 拓展类（爬虫
 def climpPage(page):
@@ -1851,6 +2003,8 @@ def excelMissing():
 
 
 if __name__ == '__main__':    
+    times = 0
+    total = []
     _config = configparser.ConfigParser()
     _config.read('./pwd.ini')
     #
@@ -1905,7 +2059,9 @@ if __name__ == '__main__':
     ui.actiondanshuangPosition.triggered.connect(danshuangPosition)
     ui.actionpositionCountOrder.triggered.connect(actionpositionCountOrder)
     ui.actionorderFileCombine.triggered.connect(actionorderFileCombine)
-    
+    ui.actionfiveEmptyBindInter.triggered.connect(fiveEmptyBindInter)
+    ui.actionshaCodeFullCha.triggered.connect(shaCodeFullCha)
+
     # 逆序算法
     ui.actionreverseResult.triggered.connect(reverseCheck)
 

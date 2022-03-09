@@ -68,6 +68,7 @@
      <addaction name="actionpositionCountOrder"/>
      <addaction name="actiondanshuangPosition"/>
      <addaction name="actionorderFileCombine"/>
+     <addaction name="actionshaCodeFullCha"/>
     </widget>
     <widget class="QMenu" name="menuexcel">
      <property name="title">
@@ -134,9 +135,16 @@
     </property>
     <addaction name="actionconfig"/>
    </widget>
+   <widget class="QMenu" name="menutest">
+    <property name="title">
+     <string>test</string>
+    </property>
+    <addaction name="actionfiveEmptyBindInter"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_3"/>
    <addaction name="menu_2"/>
+   <addaction name="menutest"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionjiaoji">
@@ -322,6 +330,16 @@
   <action name="actionorderFileCombine">
    <property name="text">
     <string>求空结果分组交并处理</string>
+   </property>
+  </action>
+  <action name="actionfiveEmptyBindInter">
+   <property name="text">
+    <string>前五后五求空交并</string>
+   </property>
+  </action>
+  <action name="actionshaCodeFullCha">
+   <property name="text">
+    <string>杀码满集差集组合运算</string>
    </property>
   </action>
  </widget>
